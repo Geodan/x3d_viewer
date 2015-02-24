@@ -1,0 +1,26 @@
+{
+  "name": "topo3d",
+  "version": "0.0.1",
+  "description": "top10nl 3d geodan",
+  "keywords": [
+    "top10",
+    "ahn",
+    "pointcloud",
+    "viewer"
+  ],
+  "authors": [
+    "Tom van Tilburg"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "x3dom": ">=1.6.1",
+    "d3": ">=3.4.12"
+  }
+}
