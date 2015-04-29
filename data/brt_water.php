@@ -41,7 +41,7 @@ pointsheight As (
 		 
 		ST_Force3D(geom) geom,
 		--ST_Translate(ST_Force3D(geom),0,0,COALESCE(PC_PatchMax(pa, 'z'),1)) geom,
-		COALESCE(PC_PatchAvg(pa, 'z'),1) as zval
+		COALESCE(PC_PatchMin(pa, 'z'),1) as zval
 		, path, points.id
 	FROM points
 	LEFT JOIN ahn2terrain b ON (ST_Intersects(geom, b.pa::geometry))
@@ -49,7 +49,7 @@ pointsheight As (
 ),
 
 polygons As (
-	SELECT ST_Translate(ST_MakePolygon(ST_Reverse(ST_MakeLine(geom))),0,0,max(zval)) geom
+	SELECT ST_Translate(ST_MakePolygon(ST_Reverse(ST_MakeLine(geom))),0,0,min(zval)) geom
 	FROM pointsheight
 	GROUP BY id
 )

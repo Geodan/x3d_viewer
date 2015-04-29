@@ -16,7 +16,7 @@ $zoom = 100 / $diagonal;
 $segmentlength = $width / 10;
 
 header('Content-type: application/json');
-$conn = pg_pconnect("host=192.168.24.15 dbname=research user=postgres password=postgres");
+$conn = pg_pconnect("host=192.168.24.15 dbname=research user=postgres");
 if (!$conn) {
   echo "A connection error occurred.\n";
   exit;
@@ -171,8 +171,9 @@ other_points AS (
 	SELECT id, geom FROM other_points
 )
 ,basepoints AS (
-	SELECT id, geom FROM innerpoints
-	UNION
+--TT: disabled innerpoints to see how it renders
+	--SELECT id, geom FROM innerpoints
+	--UNION
 	SELECT id,geom FROM polygonsz
 	WHERE ST_IsValid(geom)
 )
@@ -197,10 +198,8 @@ other_points AS (
 	AND a.id = b.id
 )
 
-SELECT $south::text || $west::text || p.id, 'terrain2' as type,
-	COALESCE(s.color, 'red') color,
+SELECT $south::text || $west::text || p.id, p.type as type,
 	ST_AsX3D(ST_Collect(p.geom),3) geom
-	,p.type AS label
 FROM assign_triags p
 LEFT JOIN bgt.vw_style s ON (p.type = s.type) 
 GROUP BY p.id, p.type, s.color

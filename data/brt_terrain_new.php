@@ -262,7 +262,7 @@ emptysatz AS ( --find closest pt for every boundary point
 	AND a.id = b.id
 )
 
-SELECT $south::text || $west::text || id, 'terrain2' as type,
+SELECT $south::text || $west::text || id, type,
 CASE
 		WHEN type = 'overig' THEN 'gray'
 		WHEN type = 'bebouwd gebied' THEN 'gray'
@@ -276,8 +276,8 @@ CASE
 		ELSE 'brown'
 	END as color, 
 ST_AsX3D(ST_Collect(p.geom),3),type AS label
-FROM assign_triags p
-GROUP BY p.id, p.type
+FROM assign_triags p, bounds b
+GROUP BY p.id, p.type, b.geom
 ";
 
 

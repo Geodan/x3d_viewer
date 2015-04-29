@@ -6,8 +6,7 @@ $west  = $_REQUEST['west'];
 $east  = $_REQUEST['east'];
 
 header('Content-type: application/json');
-//$conn = pg_pconnect("host=192.168.26.76 dbname=research user=postgres password=postgres");
-$conn = pg_pconnect("host=192.168.24.15 dbname=research user=postgres password=postgres");
+$conn = pg_pconnect("host=192.168.24.15 dbname=research user=postgres");
 if (!$conn) {
   echo "A connection error occurred.\n";
   exit;
@@ -19,7 +18,7 @@ bounds AS (
 	SELECT ST_MakeEnvelope($west, $south, $east, $north, 28992) geom
 ), 
 footprints AS (
-	SELECT ST_Force3D(ST_GeometryN(wkb_geometry,1)) geom,
+	SELECT ST_Force3D(ST_GeometryN(ST_SimplifyPreserveTopology(wkb_geometry,0.4),1)) geom,
 	a.ogc_fid id,
 	0 bouwjaar
 	FROM bgt_import.\"BuildingPart\" a, bounds b
@@ -70,10 +69,12 @@ stats_fast AS (
 	GROUP BY footprints.id, footprint, bouwjaar
 ),
 polygons AS (
-	SELECT id, bouwjaar, ST_Extrude(ST_Tesselate(ST_Translate(footprint,0,0, min)), 0,0,max-min) geom FROM stats_fast
+	SELECT 
+		id, bouwjaar,
+		ST_Extrude(ST_Tesselate(ST_Translate(footprint,0,0, min)), 0,0,max-min) geom FROM stats_fast
 	--SELECT ST_Tesselate(ST_Translate(footprint,0,0, min + 20)) geom FROM stats_fast
 )
-SELECT id,'building' as type, COALESCE(s.color, 'red') color, ST_AsX3D(p.geom) geom, bouwjaar as label
+SELECT id,s.type as type, COALESCE(s.color, 'red') color, ST_AsX3D(p.geom) geom
 FROM polygons p
 LEFT JOIN bgt.vw_style s ON (s.type = 'pand')
 ";

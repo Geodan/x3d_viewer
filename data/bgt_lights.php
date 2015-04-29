@@ -20,10 +20,14 @@ bounds AS (
 ),
 
 points AS (
-	SELECT gml_id id, geom FROM bgt_amersfoort.\"Paal\"
+	SELECT a.ogc_fid id, a.wkb_geometry geom 
+	FROM bgt_import.\"Paal\" a, bounds b 
+	WHERE \"plus-type\" = 'lichtmast'
+	AND ST_Intersects(a.wkb_geometry, b.geom)
+
 ),
 pointsz As (
-	SELECT a.id, ST_Translate(ST_Force3D(a.geom),0,0,COALESCE(PC_PatchAvg(pa, 'z'),-99)) geom
+	SELECT a.id, ST_Translate(ST_Force3D(a.geom),0,0,COALESCE(PC_PatchAvg(pa, 'z'),-99)+5) geom
 	FROM points a
 	LEFT JOIN ahn_pointcloud.ahn2terrain b ON ST_Intersects(
 		geometry(pa), 

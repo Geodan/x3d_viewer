@@ -207,44 +207,31 @@
 <script src="x3d_map.js"></script>
 
 <script type="">
+
+var themeconfig = {
+	gray: {
+	 materials: {
+		'overig' :{ diffuseColor:'gray'},
+		'Brug': {diffuseColor: 'gray'},
+		'Bebouwing' :{diffuseColor: 'gray'},
+		'Grasvlak' :{diffuseColor: 'green'},
+		'Boomgroep / struikgewas' :{diffuseColor: '0 0.4 0'},
+		'Breuksteenvlak' :{diffuseColor: 'black'},
+		'wegvlak' :{diffuseColor: '0.4 0.4 0.4'},
+		'Erfvlak' :{diffuseColor: '0.8 0.8 0.3'},
+		'Bouwland' :{diffuseColor: '0.8 0.7 0.3'},
+		'Steigerwerk / aanlegsteiger' :{diffuseColor: 'black'},
+		'Beton(plaat)vlak' :{diffuseColor: 'gray'},
+		'Open verharding (klinkers, tegels)' :{diffuseColor: 'gray'},
+		'Half verhard, onverhard' :{diffuseColor: 'gray'},
+		'Gap': {opacity: 0,transparency: 1}
+	 }
+	}
+};
+
 var tilesize = 100;
 /* Some UI changeable settings **/
 var div = d3.select('#debug');
-div.append('div').html('Location');
-var input = div.append('input');
-
-input.on('blur', function(d){
-    var url = '/service/geosearch/free?q='+this.value+'&facet=true&facet.field=type&wt=json&_=1413275899673';
-    d3.json(url, function(z){
-            var point = z.response.docs[0].centroid[0];
-            var wgscoords = point.replace('POINT(','').replace(')','').split(' ');
-            var toproj = '+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.999908 +x_0=155000 +y_0=463000 +ellps=bessel +units=m +towgs84=565.2369,50.0087,465.658,-0.406857330322398,0.350732676542563,-1.8703473836068,4.0812 +no_defs';
-            var coords = proj4(toproj, wgscoords);
-            var x = Math.round(coords[0]);
-            var y = Math.round(coords[1]);
-            var radius = 300; 
-            map.dim.minx = x -radius;
-            map.dim.maxx = x +radius;
-            map.dim.miny = y -radius;
-            map.dim.maxy = y +radius;
-            loadlist.forEach(function(val){
-                val.reload = true;
-                d3.selectAll('.'+ val.name).remove();
-            });
-            map.bbox2tiles(map.dim.getBounds());
-            
-            var centerX = (map.dim.minx + map.dim.maxx) / 2;
-            var centerY = (map.dim.miny + map.dim.maxy) / 2;
-            map.scene.append("viewpoint")
-                .attr( "centerOfRotation", centerX + " " + centerY + " 0" )
-                .attr( "position", centerX + " " + centerY + " 550")
-                .attr( "orientation", "0 0 0 1" )
-                .attr('set_bind',true);
-                //<viewpoint id='back_cam' description='back_cam' orientation='0.996843 -0.079223 -0.00522 6.15119' position='4.43222 99.5907 503.808' fieldOfView='0.950022'></viewpoint>
-                //document.getElementById('front_cam').setAttribute('set_bind','true');
-            
-    });
-});
 
 div.append('div').html('Tilesize ');
 var select =  div.append('select');
@@ -271,24 +258,6 @@ div.append('button').on('click', function(){
 	});
 	map.bbox2tiles(map.dim.getBounds());
 }).html('Render');
-/*
-div.append('button').on('click', function(){
-    if (d3.select('.terrain1').attr('render') == 'true'){     
-        d3.selectAll('.terrain1').attr('render',false);
-        d3.selectAll('.terrain2').attr('render',true);
-    }
-    else {
-        d3.selectAll('.terrain1').attr('render',true);
-        d3.selectAll('.terrain2').attr('render',false);
-    }
-}).html('Terrain');
-*/
-/*
-div.append('div').html('Data ');
-div.append('div').selectAll('label')
-    .data(loadlist2, function(d){return d.name;})
-    .enter().append('label').append('input').attr('type','checkbox').attr('name',function(d){return d.name;});
-*/
 div.append('div').html('TimeOfDay ');
 var select =  div.append('select');
 select.append('option').attr('value','0 0 1').html('Midnight');
@@ -306,7 +275,7 @@ select.on('change', function(){
 
 var loadlist = [
     //{name: 'bridge',reload: true, url: './data/pc_bridge_service.php'}
-	//{name: 'tree',reload: true, url: './data/brt_trees.php'}
+	{name: 'bridge',reload: true, url: './data/hhnk_bridge.php'}
 	,{name: 'terrain2', reload: true, url: './data/hhnk_terrain.php'}
 	//,{name: 'building', reload: true, url: './data/brt_buildings.php'}
 	//,{name: 'pc_buildings', reload: true, url: './data/brt_buildings.php'}
@@ -315,7 +284,7 @@ var loadlist = [
 
 var test1 = new render(wxs3, 'webgl1', {
         loadlist: loadlist,
-        bbox:'121892,524398, 122167,524603', 
+        bbox:'121892,524398, 122167,524603'
 });
 document.getElementById('viewpointwebgl1').addEventListener('viewpointChanged', viewFunc, false);
 

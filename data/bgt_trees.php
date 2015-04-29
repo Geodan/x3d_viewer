@@ -24,17 +24,17 @@ bounds AS (
 footprint AS (
 	SELECT 
 	$south::text || $west::text || 'tree' || ogc_fid id,
-	a.wkb_geometry As geom
-	FROM bgt.vegetatieobject a, bounds b
+	a.wkb_geometry As geom, \"plus-type\" as type
+	FROM bgt_import.\"SolitaryVegetationObject\" a, bounds b
 	WHERE 1 = 1 
 	AND ST_Intersects(a.wkb_geometry, b.geom)
 ),
 buildings AS (
-    SELECT St_Union(wkb_geometry) geom 
-    FROM bgt.pand a, bounds b
+    SELECT St_Union(ST_Intersection(wkb_geometry, geom)) geom 
+    FROM bgt_import.\"BuildingPart\" a, bounds b
     WHERE St_Intersects(a.wkb_geometry, b.geom)
-    AND ST_IsValid(a.wkb_geometry)
-    AND ST_GeometryType(a.wkb_geometry) = 'ST_MultiPolygon'
+    --AND ST_IsValid(a.wkb_geometry)
+    --AND ST_GeometryType(a.wkb_geometry) = 'ST_MultiPolygon'
 ),
 patches AS (
 	SELECT b.id, a.pa FROM ahn_pointcloud.ahn2objects a, footprint b
@@ -49,11 +49,11 @@ points_filtered AS (
 	SELECT * FROM points 
 	--WHERE random() < $zoom --reduce the number of points
 )
-SELECT b.id, 'tree' as type, '0 ' || random() * 0.1 ||' 0' as color, ST_AsX3D(ST_Collect(a.geom)) geom
+SELECT b.id, b.type as type, '0 ' || random() * 0.1 ||' 0' as color, ST_AsX3D(ST_Collect(a.geom)) geom
 FROM points_filtered a, footprint b, buildings c
 WHERE ST_DWithin(a.geom, b.geom,10)
 AND Not ST_DWithin(ST_Force2D(a.geom), c.geom,1)
-GROUP BY b.id;
+GROUP BY b.id, b.type;
 ";
 
 

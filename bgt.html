@@ -8,8 +8,8 @@
  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
  -->
- <link rel="stylesheet" type="text/css" href="./bower_components/x3dom/x3dom.css" />
- <script src="./bower_components/x3dom/x3dom.js"></script>
+ <link rel="stylesheet" type="text/css" href="http://x3dom.org/download/dev/x3dom.css" />
+ <script src="http://x3dom.org/download/dev/x3dom.js"></script>
  <script src="./bower_components/d3/d3.min.js"></script>
  
  <script src="http://cdnjs.cloudflare.com/ajax/libs/proj4js/2.2.1/proj4.js"></script>
@@ -25,6 +25,7 @@
 	    height: 100%;
 	    margin: 0px;
 	    padding: 0px;
+	    color: white;
 	}
 	
 	.popup {
@@ -51,160 +52,69 @@
 		width: 200px;
 		height: 200px;
 	}
+	#viewMat {
+		position: absolute;
+		color: white;
+		bottom: 0px;
+	}
+	
 </style>
 
+<script>
 
 
-
- <!--small script that implements the dragging functionality-->
-    <script>
-        var cellSize = 1.0;
-        
-        var lastMouseX = -1;
-        var lastMouseY = -1;
-        
-        var draggedTransformNode = null;
-        
-        //vectors in 3D world space, associated to mouse x/y movement on the screen
-        var draggingUpVec    = null;
-        var draggingRightVec = null;
-        
-        var unsnappedDragPos = null;
-
-        /***
-         * delegate the rotation of the object to the coordinate arrows
-         * @param evt the event that calls the function (connected to the viewpoint "ViewpointMain")
-         */
-        var viewFunc = function (evt) {
-            pos = evt.position;
-            rot = evt.orientation;
-            mat = evt.matrix;
-    
-            //document.getElementById('coordinateAxesViewpoint').setAttribute( 'position', pos.x+' '+pos.y+' '+pos.z);
-            //document.getElementById('viewpointwebgl2').setAttribute('position', 0 + ' ' + 0 + ' ' + 0);
-            document.getElementById('viewpointwebgl2').setAttribute('rotation', rot[0].x + ' ' + rot[0].y + ' ' + rot[0].z + ' ' + rot[1]);
-    
-            //x3dom.debug.logInfo('position: ' + pos.x+' '+pos.y+' '+pos.z +'\n' + 'orientation: ' + rot[0].x+' '+rot[0].y+' '+rot[0].z+' '+rot[1]);
-        };
-                //------------------------------------------------------------------------------------------------------------------
-        
-        var mouseMoved = function(event)
-        {
-            //offsetX / offsetY polyfill for FF
-            var target = event.target || event.srcElement;
-            var rect = target.getBoundingClientRect();
-            event.offsetX = event.clientX - rect.left;
-            event.offsetY = event.clientY - rect.top;
-        
-            if (lastMouseX === -1)
-            {
-                lastMouseX = event.offsetX;
-            }
-            if (lastMouseY === -1)
-            {
-                lastMouseY = event.offsetY;
-            }
-
-            if (draggedTransformNode)
-            {
-               dragObject(event.offsetX - this.lastMouseX, event.offsetY - this.lastMouseY);
-            }
-
-            lastMouseX = event.offsetX;
-            lastMouseY = event.offsetY;
-        };
-        
-        //------------------------------------------------------------------------------------------------------------------
-        
-        var startDragging = function(transformNode)
-        {        
-            //disable navigation during dragging
-            document.getElementById("navInfo").setAttribute("type", '"NONE"');
-                       
-            draggedTransformNode = transformNode;            
-            unsnappedDragPos     = new x3dom.fields.SFVec3f.parse(transformNode.getAttribute("translation"));
-            
-            
-            //compute the dragging vectors in world coordinates
-            //(since navigation is disabled, those will not change until dragging has been finished)
-
-            //get the viewer's 3D local frame
-            var x3dElem  = document.getElementById("x3dElement1");
-            var vMatInv  = x3dElem.runtime.viewMatrix().inverse();            
-            var viewDir  = vMatInv.multMatrixVec(new x3dom.fields.SFVec3f(0.0, 0.0, -1.0));
-            
-            //use the viewer's up-vector and right-vector
-            draggingUpVec    = vMatInv.multMatrixVec(new x3dom.fields.SFVec3f(0.0, 1.0,  0.0));;
-            draggingRightVec = viewDir.cross(this.draggingUpVec);   
-
-            
-            //project a world unit to the screen to get its size in pixels            
-            var x3dElem  = document.getElementById("x3dElement1");
-            var p1 = x3dElem.runtime.calcCanvasPos(unsnappedDragPos.x, unsnappedDragPos.y, unsnappedDragPos.z);
-            var p2 = x3dElem.runtime.calcCanvasPos(unsnappedDragPos.x + draggingRightVec.x,
-                                                   unsnappedDragPos.y + draggingRightVec.y,
-                                                   unsnappedDragPos.z + draggingRightVec.z)
-            var magnificationFactor = 1.0 / Math.abs(p1[0] - p2[0]);
-            
-            //scale up vector and right vector accordingly            
-            draggingUpVec    = draggingUpVec.multiply(magnificationFactor);
-            draggingRightVec = draggingRightVec.multiply(magnificationFactor);
-            
-             
-        };
-
-        //------------------------------------------------------------------------------------------------------------------
-
-        var dragObject = function(dx, dy)
-        {
-            //scale up vector and right vector accordingly            
-            var offsetUp    = draggingUpVec.multiply(-dy);
-            var offsetRight = draggingRightVec.multiply(dx);
-
-            unsnappedDragPos = unsnappedDragPos.add(offsetUp).add(offsetRight);
-
-            var snappedDragPos;
-
-            //if enabled, take grid snapping into account
-            //if (document.getElementById("snapCheckbox").checked)
-            //{
-            //    snappedDragPos = new x3dom.fields.SFVec3f(cellSize * Math.ceil(unsnappedDragPos.x / cellSize),
-            //                                              cellSize * Math.ceil(unsnappedDragPos.y / cellSize),
-            //                                              cellSize * Math.ceil(unsnappedDragPos.z / cellSize));
-            //    draggedTransformNode.setAttribute("translation", snappedDragPos.toString());
-            //}
-            //else
-            //{
-                unsnappedDragPos.z = 50;
-                draggedTransformNode.setAttribute("translation", unsnappedDragPos.toString());
-                var ws = core.websocket();
-                var fromproj = '+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.999908 +x_0=155000 +y_0=463000 +ellps=bessel +units=m +towgs84=565.2369,50.0087,465.658,-0.406857330322398,0.350732676542563,-1.8703473836068,4.0812 +no_defs';
-                var toproj = proj4.defs('EPSG:4326');
-                var coords = [unsnappedDragPos.x, unsnappedDragPos.y];
-                var wgscoords = proj4(fromproj, toproj, coords);
-                var data = {command: 'mouseloc', coords: wgscoords};
-                ws.sendData(data, 'command');
-            //}
-        };
-
-        //------------------------------------------------------------------------------------------------------------------
-
-        var stopDragging = function()
-        {
-            draggedTransformNode = null;                
-            draggingUpVec        = null;
-            draggingRightVec     = null;
-            unsnappedDragPos     = null;
-            
-            //re-enable navigation after dragging
-            document.getElementById("navInfo").setAttribute("type", '"EXAMINE" "ANY"');
-        };        
-    </script>
+var themeconfig = {
+	gray: {
+	 materials: {
+		pand: {shininess:'0.078125', ambientIntensity:'0.142857', diffuseColor: 'gray',transparency: '0'},
+		waterloop: {specularColor: '0.823529 0.705882 0.54902', diffuseColor: 'gray', shininess: '1'},
+		voetpad: {diffuseColor: 'gray'},
+		rijbaan_lokale_weg: {diffuseColor: 'gray'},
+		open_verharding:{diffuseColor: 'gray'},
+		erf:{diffuseColor: 'gray'},
+		groenvoorziening:{diffuseColor: 'green'},
+		dek:{diffuseColor: 'gray'},
+		pijler: {diffuseColor: 'gray'},
+		light: {emissiveColor: 'yellow', transparency: 0},
+		post: {diffuseColor: 'gray'},
+		scene: {skyColor: '0.1 0.1 0.1'}
+	 }
+	},
+	light: {
+	  materials: {
+		pand: {transparency: '0',diffuseColor: 'white'},
+		waterloop: {diffuseColor: '0.5 0.5 0.8'},
+		light: {emissiveColor: 'black', transparency: 1},
+		scene: {skyColor: '0.4 0.6 0.8'}
+	  }
+	},
+	functional: {
+		materials: {
+			fietspad:{diffuseColor: 'brown'},
+			inrit: {diffuseColor: 'gray'},
+			'OV-baan':{diffuseColor: 'gray'},
+			overweg:{diffuseColor: 'gray'},
+			parkeervlak:{diffuseColor: 'gray'},
+			'rijbaan autosnelweg': {diffuseColor: 'gray'},
+			'rijbaan autoweg': {diffuseColor: 'gray'},
+			'rijbaan lokale weg':{diffuseColor: 'gray'},
+			'rijbaan regionale weg':{diffuseColor: 'gray'},
+			spoorbaan:{diffuseColor: 'darkGray'},
+			transitie:{diffuseColor: 'purple'},
+			voetgangersgebied:{diffuseColor: 'white'},
+			voetpad:{diffuseColor: 'white'},
+			'voetpad op trap':{diffuseColor: 'white'},
+			woonerf:{diffuseColor: 'gray'},
+		}
+	}
+};   
+</script>
 
 </head>
 <body>
 	<div id="webgl1">
-	    <div class="title">Geodan</div>
+	    <div class="title">BGT 3D</div>
+	    <div id="viewMat"></div>
 	</div>
 	<div id="debug"></div>
 
@@ -212,6 +122,43 @@
 <script src="x3d_map.js"></script>
 
 <script type="">
+
+
+// viewpoint changed
+//http://x3dom.org/x3dom/example/x3dom_uiEvents.html
+function viewFunc(evt)
+{
+	// show viewpoint values
+	if (evt)
+	{
+		var pos = evt.position;
+		var rot = evt.orientation;
+		var mat = evt.matrix;
+	
+		var camPos = pos.x.toFixed(4)+' '+pos.y.toFixed(4)+' '+pos.z.toFixed(4);
+		var camRot = rot[0].x.toFixed(4)+' '+rot[0].y.toFixed(4)+' '+rot[0].z.toFixed(4)+' '+rot[1].toFixed(4);
+	
+		document.getElementById("viewMat").innerHTML = "&ltViewpoint position='" + 
+														camPos + "' orientation='" + camRot + "'&gt";
+	}
+	
+	// update 2d marker also if camera changes since projection is now wrong
+	/*
+	var trans = x3d.fields.SFVec3f.parse(document.getElementById('bar').getAttribute("translation"));
+	var pos2d = runtime.calcPagePos(trans.x, trans.y, trans.z);
+	var anno = document.getElementById("anno2d");
+	
+	anno.innerHTML = "(" + pos2d[0] + ", " + pos2d[1] + ")";
+	anno.style.left = (pos2d[0]+1) + "px";
+	anno.style.top = (pos2d[1]+1) + "px";
+	*/
+}
+document.onload= function() 
+{
+	document.getElementById('viewpointwebgl1').addEventListener('viewpointChanged', viewFunc, false);
+    viewFunc(null);
+}
+
 var tilesize = 100;
 /* Some UI changeable settings **/
 var div = d3.select('#debug');
@@ -236,6 +183,7 @@ input.on('blur', function(d){
                 val.reload = true;
                 d3.selectAll('.'+ val.name).remove();
             });
+            d3.selectAll('.toposhape').remove();
             map.bbox2tiles(map.dim.getBounds());
             
             var centerX = (map.dim.minx + map.dim.maxx) / 2;
@@ -251,86 +199,83 @@ input.on('blur', function(d){
     });
 });
 
-div.append('div').html('Tilesize ');
-var select =  div.append('select');
-select.append('option').attr('value',25).html('25');
-select.append('option').attr('value',50).html('50');
-select.append('option').attr('value',100).attr('selected',true).html('100');
-select.append('option').attr('value',200).html('200');
 
+
+div.append('div').html('Theme');
+var select =  div.append('select');
+for (var key in themeconfig){
+	select.append('option').attr('value',key).html(key);
+}
 select.on('change', function(){
-	loadlist.forEach(function(val){
-		if (val.name == 'terrain2'){
-			val.reload = true;
+	for (var key in themeconfig[this.value]['materials']){
+		var material = d3.selectAll('.' + key).select('.material');
+		for (var attr in themeconfig[this.value]['materials'][key]){
+			var value = themeconfig[this.value]['materials'][key][attr];
+			material.attr(attr,value);
 		}
-	});
-	tilesize = parseInt(this.value);
+	}
 });
 
-
-div.append('button').on('click', function(){
-	loadlist.forEach(function(val){
-		if (val.name == 'terrain2'){
-			d3.selectAll('.'+ val.name).remove();
-		}
-	});
-	map.bbox2tiles(map.dim.getBounds());
-}).html('Render');
-/*
-div.append('button').on('click', function(){
-    if (d3.select('.terrain1').attr('render') == 'true'){     
-        d3.selectAll('.terrain1').attr('render',false);
-        d3.selectAll('.terrain2').attr('render',true);
-    }
-    else {
-        d3.selectAll('.terrain1').attr('render',true);
-        d3.selectAll('.terrain2').attr('render',false);
-    }
-}).html('Terrain');
-*/
-/*
-div.append('div').html('Data ');
-div.append('div').selectAll('label')
-    .data(loadlist2, function(d){return d.name;})
-    .enter().append('label').append('input').attr('type','checkbox').attr('name',function(d){return d.name;});
-*/
 div.append('div').html('TimeOfDay ');
 var select =  div.append('select');
 select.append('option').attr('value','0 0 1').html('Midnight');
 select.append('option').attr('value','-1 0 -0.2').html('Dusk');
-select.append('option').attr('value','0 0 -1').attr('selected',true).html('Midday');
+select.append('option').attr('value','0.2 0.2 -1').attr('selected',true).html('Midday');
 select.append('option').attr('value','1 0 -0.2').html('Dawn');
 select.on('change', function(){
 	var direction = this.value;
 	light1.transition().duration('2000').attr('direction',direction);
 });
+div.append('div').html('Headlight');
+div.append('button').on('click', function(){
+		if (d3.select('#navInfo').attr('headlight') == 'true'){
+			d3.select(this).html('OFF');
+			d3.select('#navInfo').attr('headlight','false');
+		}
+		else {
+			d3.select(this).html('ON');
+			d3.select('#navInfo').attr('headlight','true');
+		}
+}).html('OFF');
 
-
+div.append('div').html('Viewpoint ');
+div.append('button').on('click', function(){
+    document.getElementById('viewpointwebgl1').setAttribute('set_bind','true');
+}).html('Default');
+div.append('button').on('click', function(){
+	document.getElementById('leiden1').setAttribute('set_bind','true');
+}).html('View1');
+div.append('button').on('click', function(){
+    document.getElementById('leiden2').setAttribute('set_bind','true');
+}).html('View2');
+div.append('button').on('click', function(){
+    document.getElementById('leiden3').setAttribute('set_bind','true');
+}).html('View3');
 
 /** End of UI settings **/
-
 var loadlist = [
     //{name: 'bridge',reload: true, url: './data/pc_bgt_bridge_service.php'}
-    {name: 'brug',reload: true, url: './data/bgt_bridge.php'}
-	//,{name: 'tree',reload: true, url: './data/bgt_trees.php'}
+    //{name: 'nwb',reload: true, url: './data/nwb_wegvak.php'}
+    
+	//,{name: 'tree',		reload: true, url: './data/bgt_trees.php'}
 	,{name: 'terrain2', reload: true, url: './data/bgt_terrain.php'}
 	,{name: 'building', reload: false, url: './data/bgt_buildings.php'}
-	,{name: 'scheiding', reload: false, url: './data/bgt_scheiding.php'}
-	,{name: 'brug', reload: false, url: './data/bgt_bridgepilons.php'}
-	,{name: 'kade', reload: false, url: './data/bgt_kade.php'}
-	//,{name: 'roof', reload: true, url: './data/bgt_lights.php'}
-	//,{name: 'pc_buildings', reload: true, url: './data/pc_buildings_service.php'}
-	,{name: 'water', reload: true, url: './data/bgt_water.php'}
+	,{name: 'scheiding',reload: false, url: './data/bgt_scheiding.php'}
+	,{name: 'brug',		reload: true, url: './data/bgt_bridge.php'}
+	,{name: 'brug', 	reload: false, url: './data/bgt_bridgepilons.php'}
+	,{name: 'kade', 	reload: false, url: './data/bgt_kade.php'}
+	,{name: 'lights', 	reload: true, url: './data/bgt_lights.php'}
+	,{name: 'water', 	reload: true, url: './data/bgt_water.php'}
 ]; 
 
-var test1 = new render(wxs3, 'webgl1', {
-        loadlist: loadlist,
-        //bbox:'188045,428786, 188411,429044', //klein stukje nijmegen (Valkhof)
-        //bbox: '154459,463904,154947,464231' //Amersfoort
-        //bbox: '154678.0,463991.2,154783.9,464063.7' //Amersfoort_small
-        bbox: '93563.8,463706.1,93907.6,464002.9'
+render(wxs3, 'webgl1', {
+	loadlist: loadlist,
+	//bbox:'188045,428786, 188411,429044', //klein stukje nijmegen (Valkhof)
+	//bbox: '154459,463904,154947,464231' //Amersfoort
+	//bbox: '154678.0,463991.2,154783.9,464063.7' //Amersfoort_small
+	bbox: '93616,463691,93987,463981' //Leiden
+	//bbox: '90870,391146, 91346,392412'
 });
-document.getElementById('viewpointwebgl1').addEventListener('viewpointChanged', viewFunc, false);
 
 </script>
 </body>
