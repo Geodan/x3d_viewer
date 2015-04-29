@@ -19,15 +19,16 @@ bounds AS (
 ),
 footprints AS (
 	SELECT ST_Force3D(ST_SetSrid(a.wkb_geometry,28992)) geom,
-	a.ogc_fid id
-	FROM bgt_light_import.\"Overbruggingsdeel\" a, bounds b
+	a.ogc_fid id, a.class as type
+	FROM bgt_import.\"BridgeConstructionElement\" a, bounds b
 	WHERE 1 = 1
-	AND \"typeOverbruggingsdeel\" = 'pij'
+	AND class = 'pijler'
 	AND ST_Intersects(ST_SetSrid(a.wkb_geometry,28992), b.geom)
 	AND ST_Intersects(ST_Centroid(ST_SetSrid(a.wkb_geometry,28992)), b.geom)
 ),
 papoints AS ( --get points from intersecting patches
 	SELECT 
+		a.type,
 		a.id,
 		PC_Explode(b.pa) pt,
 		geom
@@ -37,6 +38,7 @@ papoints AS ( --get points from intersecting patches
 papatch AS (
 	SELECT
 		id,
+		type,
 		geom,
 		PC_Patch(pt) pa,
 		PC_PatchMin(PC_Patch(pt), 'z') min,
@@ -44,29 +46,30 @@ papatch AS (
 		PC_PatchAvg(PC_Patch(pt), 'z') avg
 	FROM papoints
 	WHERE ST_Intersects(geometry(pt), geom)
-	GROUP BY id, geom
+	GROUP BY id, geom, type
 ),
 filter AS (
 	SELECT
 		id,
+		type,
 		geom,
 		PC_FilterBetween(pa, 'z',avg-1, avg+1) pa,
 		min, max, avg
 	FROM papatch
 ),
 stats AS (
-	SELECT  id, geom,
+	SELECT  id, geom,type,
 		max,
 		min,
 		avg,
 		PC_PatchAvg(pa,'z') z
 	FROM filter
-	GROUP BY id, geom, max, min, avg, z
+	GROUP BY id, geom, type, max, min, avg, z
 ),
 polygons AS (
-	SELECT id, ST_Extrude(ST_Tesselate(ST_Translate(geom,0,0, min)), 0,0,avg-min) geom FROM stats
+	SELECT id, type,ST_Extrude(ST_Tesselate(ST_Translate(geom,0,0, min)), 0,0,avg-min) geom FROM stats
 )
-SELECT id,'building' as type, '0.66 0.37 0.13' as color, ST_AsX3D(polygons.geom) geom
+SELECT id, type, '0.66 0.37 0.13' as color, ST_AsX3D(polygons.geom) geom
 FROM polygons
 ";
 

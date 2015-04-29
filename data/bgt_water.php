@@ -76,7 +76,7 @@ terrain AS (
 	AND a.id = b.id
 )
 
-SELECT $south::text || $west::text || p.id, 'terrain2' as type,
+SELECT $south::text || $west::text || p.id, p.type as type,
 COALESCE(s.color, 'red') color,
 ST_AsX3D(ST_Collect(p.geom),3),p.type AS label
 FROM assign_triags p

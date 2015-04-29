@@ -67,7 +67,7 @@ polygons AS (
 	SELECT id, ST_Extrude(ST_Tesselate(ST_Translate(footprint,0,0, min)), 0,0,max-min) geom FROM stats
 	--SELECT ST_Tesselate(ST_Translate(footprint,0,0, min + 20)) geom FROM stats_fast
 )
-SELECT id,'building' as type, COALESCE(s.color, 'grey') color, ST_AsX3D(p.geom) geom
+SELECT id,s.type as type, COALESCE(s.color, 'grey') color, ST_AsX3D(p.geom) geom
 FROM polygons p
 LEFT JOIN bgt.vw_style s ON (s.type = 'kade')
 ";

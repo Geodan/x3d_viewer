@@ -339,7 +339,7 @@ triangles_mesh AS (
 	ON ST_Contains(ST_Buffer(b.geom,0.2), a.geom)
 )
 
-SELECT $south::text || $west::text || id, 'terrain2' as type,
+SELECT $south::text || $west::text || id, type as type,
 CASE
 		WHEN type = 'overig' THEN 'gray'
 		WHEN type = 'bebouwd gebied' THEN 'gray'

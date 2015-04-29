@@ -35,6 +35,7 @@ terrain AS (
 	WHERE ST_Intersects(a.geom, b.geom)
 	AND \"CODE\" Not Like 'DWV' --Watervlak
 	AND \"CODE\" Not Like 'W%' --Weg
+	AND \"CODE_BETEKENIS\" Not Like 'Brug%' --Brug
 )
 ,roads AS (
 	SELECT nextval('counter') id, id as fid, 'wegvlak'::text as type,
@@ -169,12 +170,12 @@ breaklines_emptyz AS ( --find closest pt for every boundary point
 	WHERE random() < (0.1 * $zoom)
 )
 ,basepoints AS (
-	SELECT id, geom FROM innerpoints
-	UNION
+	--SELECT id, geom FROM innerpoints
+	--UNION
 	SELECT id, ST_ExteriorRing(geom) geom FROM polygonsz
 	WHERE ST_IsValid(geom)
-	UNION
-	SELECT id, geom FROM breaklinesz
+	--UNION
+	--SELECT id, geom FROM breaklinesz
 )
 ,triangles AS (
 	SELECT 
@@ -197,23 +198,8 @@ breaklines_emptyz AS ( --find closest pt for every boundary point
 	AND a.id = b.id
 )
 
-SELECT $south::text || $west::text || id, 'terrain2' as type,
-CASE
-		WHEN type = 'overig' THEN 'gray'
-		WHEN type = 'Bebouwing' THEN 'gray'
-		WHEN type = 'Grasvlak' THEN 'green'
-		WHEN type = 'Boomgroep / struikgewas' THEN '0 0.4 0'
-		WHEN type = 'Breuksteenvlak' THEN 'black'
-		WHEN type = 'wegvlak' THEN '0.4 0.4 0.4'
-		WHEN type = 'Erfvlak' THEN '0.8 0.8 0.3'
-		WHEN type = 'Bouwland' THEN '0.8 0.7 0.3'
-		WHEN type = 'Steigerwerk / aanlegsteiger' THEN 'black'
-		WHEN type = 'Beton(plaat)vlak' THEN 'gray'
-		WHEN type = 'Open verharding (klinkers, tegels)' THEN 'gray'
-		WHEN type = 'Half verhard, onverhard' THEN 'gray'
-		ELSE 'brown'
-	END as color, 
-ST_AsX3D(ST_Collect(p.geom),3),type AS label
+SELECT $south::text || $west::text || id,type,
+ST_AsX3D(ST_Collect(p.geom),3) geom
 FROM assign_triags p
 GROUP BY p.id, p.type
 ";
@@ -225,7 +211,7 @@ if (!$result) {
   exit;
 }
 
-$res_string = "id;type;color;geom;label;\n";
+$res_string = "id;type;geom;\n";
 while ($row = pg_fetch_row($result)) {
 	$res_string = $res_string . implode(';',$row) . "\n";
 }

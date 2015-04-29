@@ -150,70 +150,38 @@ var render = function(ns, divid, config){
     ns.ThreeDMap.prototype.createRenderer = function () {
 		this.renderer = d3.select("#" + divid)
 		        .append('x3d')
-                //.attr('onmouseup', "stopDragging();")
-                //.attr('onmousemove', "mouseMoved(event);")
+		        .attr('id', 'x3delement')
 				.attr('showStat', false)
 				.attr('showLog', false)
-				//.attr('style',"width:50%; height:800px; border:0")
                 .attr("width", this.dim.width + "px" )
                 .attr("height", this.dim.height + "px" );
     };
 
     ns.ThreeDMap.prototype.createScene = function () {
-		this.scene = this.renderer.append("scene");
-		//this.scene.append('Fog').attr('id', 'fog1').attr('visibilityRange', 3000).attr('fogType', 'EXPONENTIAL');
-		this.scene.append('x3d:Background').attr('skyColor', '0.4 0.6 0.8');
-		light1 = this.scene.append('DirectionalLight').attr('direction','0 0 -0.7').attr('intensity','0.5').attr('shadowIntensity','0');
-        //this.scene.append('SpotLight').attr('location','188145.1,428986.4,50').attr('direction','188145.1,428986.4,100').attr('radius',300).attr('beamWidth',0.140);
+		this.scene = this.renderer.append("Scene").classed('scene', true);
+		//this.scene.append('Fog').attr('id', 'fog1')
+		//	.attr('visibilityRange', 500)
+		//	.attr('color','0.1 0.1 0.1')
+		//	.attr('fogType', 'EXPONENTIAL');
+		this.scene.append('environment')
+			.attr('frustumCulling',true)
+			.attr('smallFeatureCulling',true)
+			.attr('smallFeatureThreshold',3)
+			.attr('lowPriorityCulling', true)
+			.attr('lowPriorityThreshold',0.99);
 		
-		
+		this.scene.append('x3d:Background')
+			.classed('material',true)
+			.attr('skyColor', '0.1 0.1 0.1');
+		light1 = this.scene.append('DirectionalLight').classed('DirectionalLight',true)
+			//.attr('color','orange')
+			.attr('direction','0.2 0.2 -1')
+			.attr('intensity','0.2')
+			.attr('shadowIntensity','0')
+			.attr('shadowCascades',"0")
+			.attr('shadowFilterSize',"0");
 		//<PointLight id='point' on='TRUE' intensity='0.9000' color='0.0 0.6 0.0' location='0 10 0.5 ' radius='5.0000' >  </PointLight> 
 		//<SpotLight DEF='Spot01' on='TRUE' intensity='1.000' ambientIntensity='0.000' color='1.000 1.000 1.000' direction='-0.764 -0.158 0.626' location='-10.171 -36.087 16.289' radius='300.000' beamWidth='0.140' cutOffAngle='0.255' shadowIntensity="0.5" zNear='20' />
-		
-		//todo: add lights
-		//this.scene.append('PointLight').attr('location','154711.9, 464026.8, 1.76').attr('radius','50').attr('intensity',0.1);
-		//this.scene.append('PointLight').attr('location','154669.426,464050.668,1.76').attr('radius','50').attr('intensity',0.1);
-		
-		//HEAD
-		/*
-		self = this;
-		d3.text('./data/head.xml', function(d){
-		  self.scene.append('transform')
-		    .attr('id', 'head')
-		    .attr('translation', "188145 428986 -20")
-		    .attr('rotation','0.1 0.1 0.1 2')
-		    .attr('scale', '100 100 100')
-		    .on('click',function(){
-		       d3.select(this).transition().duration(3000).attr('translation', "188145 428986 130");
-		    })
-		    .html(d);
-		});*/
-		/*
-		//terrain piece
-		self = this;
-		d3.text('./data/terrain_piece.xml', function(d){
-		  self.scene.append('transform')
-		    .attr('id', 'terrain_piece')
-		    .attr('translation', "0 0 100")
-		    //.attr('rotation','0.1 0.1 0.1 2')
-		    //.attr('scale', '2 2 2')
-		    .html(d);
-		});
-		*/
-		/*CONE
-		var shape = this.scene.append('transform')
-		    .attr('id', 'cone')
-		    .attr('translation', "188145 428986 30")
-		    .attr('rotation','0.1 0.1 0.1 2')
-		    .attr('onmousedown',"startDragging(this);")
-            .append('shape');
-        shape.append('appearance').append('material')
-                .attr('diffuseColor',"1 0.5 0")
-                .attr('specularColor',"0.3 0.3 0.3");
-        shape.append('cone')
-            .attr('bottomRadius',10)
-            .attr('height',20);
-            */
     };
 
     ns.ThreeDMap.prototype.createCamera = function () {
@@ -230,17 +198,33 @@ var render = function(ns, divid, config){
         var centerY = (this.dim.miny + this.dim.maxy) / 2;
         
 		
-		this.scene.append("x3d:viewpoint")
+		this.scene.append("x3d:ViewPoint")
 		    .attr('id', 'viewpoint' + divid)
            .attr( "centerOfRotation", centerX + " " + centerY + " 0" )
-           .attr( "position", centerX + " " + (centerY - 300) + " " + (cameraHeight + 50))
+           .attr( "position", centerX + " " + (centerY - 300) + " " + (cameraHeight))
 		   //.attr( 'fieldOfView' , 1.8)
-		   .attr( 'zNear',"1").attr('zFar',"200000")
+		   .attr( 'zNear',"1")
+		   .attr('zFar',"800")
            .attr( "orientation", "0.2 0 0 0.8" );
+        this.scene.append("x3d:ViewPoint")
+           .attr('id','leiden1')
+           .attr( "centerOfRotation",'93610.0181 463873.2183 25.6168' )
+           .attr('position','93610.0181 463873.2183 25.6168')
+           .attr('orientation','-0.3716 0.6002 0.7083 4.1466');
+        this.scene.append("x3d:ViewPoint")
+           .attr('id','leiden2')
+           .attr( "centerOfRotation",'93975.3693 463909.0736 56.0040')
+           .attr('position','93975.3693 463909.0736 56.0040')
+           .attr('orientation','0.4143 0.4794 0.7736 2.1176');
+        this.scene.append("x3d:ViewPoint")
+           .attr('id','leiden3')
+           .attr( "centerOfRotation",'93699.7792 463720.8471 30.8476')
+           .attr('position','93699.7792 463720.8471 30.8476')
+           .attr('orientation','0.9812 -0.1418 -0.1309 1.0953');   
            
-		this.scene.append('navigationInfo')
+		this.scene.append('NavigationInfo')
 		    .attr('id','navInfo')
-		    .attr('headlight', true)
+		    .attr('headlight', false)
 		    .attr('type', '"EXAMINE" "ANY"');
     };
 
@@ -277,25 +261,57 @@ var render = function(ns, divid, config){
     };
 
     ns.ThreeDMap.prototype.tileLoaded = function (tile) {
+    	var dragging = false;
 		var data = tile.data;
 		if (data[0] && data[0].type == 'light'){
-		    var lights = this.scene.selectAll('pointlight').data(data,function(d){return d.id;});
-		    //lights.enter()
-		    //    .append('pointlight')
-		    //    //.attr('id',function(d){return d.id;})
-		    //    .attr('location', function(d){ 
-		    //        return d.x + ',' + d.y + ','+ d.z;
-		    //    })
-		    //    .attr('radius', 50)
-		    //    .attr('intensity', 0.1);
+			//<SpotLight on='TRUE' intensity='1.0000' ambientIntensity='0.0000' color='1.0000 0.9843 0.8275' direction='-0.1962 -0.9806 -0.0000' location='45.9143 50.3673 -62.9329' radius='200.0000' beamWidth='0.3226' cutOffAngle='0.7577' />
+			var lights = this.scene.selectAll('.light').data(data,function(d){return d.id;});
+			var shape = lights.enter().append('transform')
+				.classed('light', true)
+				.classed('toposhape',true)
+				.attr('id', function(d){return d.id;})
+				.attr('translation', function(d){
+					return d.x + ' ' + d.y + ' '+ d.z;
+				})
+				.append('shape');
+			var appearance = shape.append('appearance');
+				//appearance.append('imageTexture').attr('url','flare.png');//.attr('repeatS','false').attr('repeatT','false');
+			//	appearance.append('depthMode').attr('readOnly','true');
+				appearance.append('material').classed('material', true).attr('emissiveColor',"yellow");
+				
+			//shape.append('PointSet').append('Coordinate')
+			//	.attr('point',function(d){
+			//		return d.x + ' ' + d.y + ' '+ d.z;
+			//	});
+			shape.append('box')
+				.attr('radius',5)
+				.attr('size','0.3 0.3 0.1');
+			
+			var shape = lights.enter().append('transform')
+				.classed('post',true)
+				.classed('toposhape',true)
+				.attr('id', function(d){return 'col'+d.id;})
+				.attr('translation', function(d){
+					return d.x + ' ' + d.y + ' '+ (d.z-2);
+				})
+				.attr('rotation','1 0 0 1.5')
+				.append('shape').classed('post', true);
+			shape.append('appearance').append('material').classed('material', true)
+				.attr('diffuseColor',"red");
+			shape.append('Cylinder')
+				.attr('height','4')
+				.attr('radius','0.1');
+
 		    //lights.exit().remove();
-		    //data.forEach(function(d){console.log('<pointlight location='+d.x + ' ' + d.y + ' '+ d.z+'>');}); 
+		    //data.forEach(function(d){console.log(d.id);});
+		    //data.forEach(function(d){console.log('<pointlight location='+d.x + ' ' + d.y + ' '+ d.z+'>');});
+		    
 		}
 		if (data[0] && data[0].geom){
             var shapes = this.scene.selectAll('shape .toposhape').data(data, function(d){return d.id;});
             var newshape = shapes.enter()
-                .append('shape').attr('class',function(d){
-                    return d.type;
+                .append('Shape').attr('class',function(d){
+                    return d.label || d.type;
                 })
                 .classed('toposhape', true)
                 
@@ -324,18 +340,25 @@ var render = function(ns, divid, config){
                     else {
                     	var html = d.label || d.type;
                     }
-                    	
-                    d3.select('#' + divid).append('div').classed('popup',true)
+                    
+                    if (!dragging){
+                    	d3.select('#' + divid).append('div').classed('popup',true)
                             .style('left',d3.event.layerX + 'px')
-                            .style('top', d3.event.layerY + 'px')
+                            .style('top', d3.event.layerY + -50 + 'px')
                             .style('position', 'absolute')
-                            .style('opacity',0)
-                            .html(html)
-                            .transition().style('opacity',1);
+                            .html(html);
                     
                         var e = this.getElementsByTagName('material')[0];
                         d.oldcolor = e.diffuseColor;
                         e.diffuseColor = 'red';
+                    }
+                })
+                .on('mousedown', function(d){
+                	dragging = true;
+                	d3.selectAll('.popup').remove();
+                })
+                .on('mouseup', function(d){
+                	dragging = false;
                 })
                 .on('mouseout', function(d){
                     d3.selectAll('.popup').remove();
@@ -344,32 +367,21 @@ var render = function(ns, divid, config){
                     //d3.select(this).select('Material').attr('diffuseColor', 'red');
                 })
                 .html(function(d){
-                    if (d.type == 'terrain2'){
+                    if (d.geom && d.geom.indexOf('IndexedFaceSet') >  0){
                         d.geom = d.geom.replace('IndexedFaceSet', 'IndexedFaceSet creaseAngle=\'3.14\' solid=\'false\' ');
                     }
                     return d.geom;
                 });
 		
-            var appearance = newshape.append("x3d:appearance").each(function(x){
-                if (x.type == 'tree' || x.type == 'bridge'){
-                    d3.select(this).append("x3d:material").attr('emissiveColor', function(d){return d.color;});
-                }
-                else if (x.type == 'waterloop'){
-                	d3.select(this).append("x3d:material").attr("specularColor", function(d){return d.color;});
-                }
-                else {
-                    d3.select(this).append("x3d:material").attr("diffuseColor", function(d){return d.color;})
-                        .attr('transparency',function(d){
-                                return d.type == 'building' ? '0' : '0';
-                        })
-                        //.attr('specularColor',"0.1 0.1 0.1")
-                        //.attr('ambientintensity',"0.2")
-                        //.attr('shininess',"0.0")
-                        
-                }
-                if (x.type == 'terrain2'){
-                    //d3.select(this).append('ImageTexture').attr('url',data.materialUrl);
-                }
+            var appearance = newshape.append("Appearance").each(function(x){
+            	var material = d3.select(this).append("Material").classed('material', true);
+            	var type = x.type.replace(' ','_');
+				for (var attr in themeconfig.gray.materials[type]){
+					material.attr(attr,themeconfig.gray.materials[type][attr]);
+				}
+				if (type == 'boom'){
+					material.attr('emissiveColor',x.color);
+				}
             });
         }
     };
@@ -400,11 +412,11 @@ var render = function(ns, divid, config){
                     var x = coords[0];
                     var y = coords[1];
                     return x + " " + y + " " + 50;
-            }).append('shape');
-         shape.append('appearance').append('material')
+            }).append('Shape');
+         shape.append('Appearance').append('Material')
             .attr('diffuseColor',"1 0.5 0")
             .attr('specularColor',"0.0 0.3 0.3");
-         shape.append('cylinder')
+         shape.append('Cylinder')
             .attr('radius',10)
             .attr('height', 10);
     };

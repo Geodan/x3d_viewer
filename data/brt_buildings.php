@@ -75,7 +75,7 @@ polygons AS (
 	SELECT id, bouwjaar, ST_Extrude(ST_Tesselate(ST_Translate(footprint,0,0, min)), 0,0,max-min) geom FROM stats_fast
 	--SELECT ST_Tesselate(ST_Translate(footprint,0,0, min + 20)) geom FROM stats_fast
 )
-SELECT id,'building' as type, 'white' as color, ST_AsX3D(polygons.geom) geom, bouwjaar as label
+SELECT id,'building' as type, 'white' as color, ST_AsX3D(polygons.geom) geom, 'building' as label
 
 FROM polygons
 ";

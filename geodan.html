@@ -207,6 +207,27 @@
 <script src="x3d_map.js"></script>
 
 <script type="">
+
+var themeconfig = {
+	gray: {
+		materials: {
+		'overig':{diffuseColor: 'gray'},
+		'bebouwd gebied' :{diffuseColor: 'gray'},
+		'grasland' :{diffuseColor: 'green'},
+		'bos: loofbos': {diffuseColor: '0 0.4 0'},
+		'basaltblokken, steenglooiing':{diffuseColor: 'black'},
+		'wegvlak':{diffuseColor: '0.4 0.4 0.4'},
+		'water':{diffuseColor: '0 0 0.6'},
+		'zand':{diffuseColor: '0.8 0.8 0.3'},
+		'akkerland':{diffuseColor: '0.8 0.7 0.3'},
+		scene: {skyColor: '0.1 0.1 0.1'},
+		tree: {emissiveColor: 'darkGreen'}
+		}
+	}
+};
+
+
+
 var tilesize = 100;
 /* Some UI changeable settings **/
 var div = d3.select('#debug');
@@ -308,8 +329,9 @@ var loadlist = [
     //{name: 'bridge',reload: true, url: './data/pc_bridge_service.php'}
 	{name: 'tree',reload: true, url: './data/brt_trees.php'}
 	,{name: 'terrain2', reload: true, url: './data/brt_terrain_new.php'}
+	//,{name: 'terrain2', reload: true, url: './data/brt_terrain_extruded.php'}
 	,{name: 'building', reload: true, url: './data/brt_buildings.php'}
-	,{name: 'roof', reload: true, url: './data/brt_roof.php'}
+	//,{name: 'roof', reload: true, url: './data/brt_roof.php'}
 	//,{name: 'pc_buildings', reload: true, url: './data/brt_buildings.php'}
 	//,{name: 'water', reload: true, url: './data/brt_water.php'}
 ]; 
