@@ -5,7 +5,7 @@ $south = $_REQUEST['south'];
 $west  = $_REQUEST['west'];
 $east  = $_REQUEST['east'];
 header('Content-type: application/json');
-$conn = pg_pconnect("host=192.168.26.76 dbname=research user=postgres password=postgres");
+$conn = pg_pconnect("host=titania dbname=research user=postgres password=postgres");
 if (!$conn) {
   echo "A connection error occurred.\n";
   exit;

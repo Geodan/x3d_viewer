@@ -307,7 +307,26 @@ var render = function(ns, divid, config){
 		    //data.forEach(function(d){console.log('<pointlight location='+d.x + ' ' + d.y + ' '+ d.z+'>');});
 		    
 		}
-		if (data[0] && data[0].geom){
+		/*
+		if (data[0] && data[0].type == 'tree'){
+			var points = this.scene.selectAll('.pointset').data(data,function(d){return d.id;});
+			var shape = points.enter().append('transform')
+				.classed('pointset', true)
+				.classed('toposhape',true)
+				.attr('id', function(d){return d.id;})
+				.attr('translation', function(d){
+					return d.x + ' ' + d.y + ' '+ d.z;
+				})
+				.append('shape');
+				var appearance = shape.append('Appearance');
+				appearance.append('Material').classed('material', true).attr('emissiveColor',"1 0 0");
+				shape.append('PointSet').append('Coordinate')
+					.attr('point',function(d){
+						return d.x + ' ' + d.y + ' '+ d.z;
+					});
+				
+		}*/
+		else if (data[0] && data[0].geom){
             var shapes = this.scene.selectAll('shape .toposhape').data(data, function(d){return d.id;});
             var newshape = shapes.enter()
                 .append('Shape').attr('class',function(d){
@@ -379,8 +398,17 @@ var render = function(ns, divid, config){
 				for (var attr in themeconfig.gray.materials[type]){
 					material.attr(attr,themeconfig.gray.materials[type][attr]);
 				}
-				if (type == 'boom'){
-					material.attr('emissiveColor',x.color);
+				if (type == 'tree'){
+					material.attr('emissiveColor','brown');
+				}
+				else if (type == 'building'){
+					material.attr('emissiveColor','orange');
+				}
+				else if (type == 'unclassified'){
+					material.attr('emissiveColor','white');
+				}
+				else if (type == 'ahn2objects'){
+					material.attr('emissiveColor','blue');
 				}
             });
         }

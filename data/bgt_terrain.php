@@ -16,7 +16,7 @@ $zoom = 100 / $diagonal;
 $segmentlength = $width / 10;
 
 header('Content-type: application/json');
-$conn = pg_pconnect("host=192.168.24.15 dbname=research user=postgres");
+$conn = pg_pconnect("host=titania dbname=research user=postgres");
 if (!$conn) {
   echo "A connection error occurred.\n";
   exit;
@@ -25,6 +25,11 @@ $query = "
 WITH
 bounds AS (
 	SELECT ST_Segmentize(ST_MakeEnvelope($west, $south, $east, $north, 28992),$segmentlength) geom
+),
+pointcloud_ground AS (
+	SELECT PC_FilterEquals(pa,'classification',2) pa 
+	FROM ahn3_pointcloud.vw_ahn3, bounds 
+	WHERE ST_DWithin(geom, Geometry(pa),10) --patches should be INSIDE bounds
 ),
 terrain AS (
 	SELECT nextval('counter') id, ogc_fid fid, type as type, class,
@@ -55,12 +60,13 @@ terrain AS (
 	SELECT a.id, a.fid, a.type, a.class, a.path, a.ring, a.geom,  --find closes patch to point
 	COALESCE(b.pa, 
 		(
-		SELECT b.pa FROM ahn_pointcloud.ahn2terrain b
+		SELECT b.pa FROM pointcloud_ground b
+
 		ORDER BY a.geom <#> Geometry(b.pa) 
 		LIMIT 1
 		)
 	) pa
-	FROM edge_points a LEFT JOIN ahn_pointcloud.ahn2terrain b
+	FROM edge_points a LEFT JOIN pointcloud_ground b
 	ON ST_Intersects(
 		a.geom,
 		geometry(pa)
@@ -112,23 +118,25 @@ polygonsz AS (
 	SELECT a.* FROM brt_201402.hoogteverschillz_lijn a, bounds b
 	WHERE ST_Intersects(a.wkb_geometry, b.geom)
 ),
+/*
 patches AS (
 	SELECT t.id, pa
-	FROM ahn_pointcloud.ahn2terrain, terrain_polygons t
+	FROM pointcloud_ground, terrain_polygons t
 	WHERE ST_Intersects(
 		geom,
 		geometry(pa)
 	)
-),
+),*/
 all_points AS ( -- get pts in every boundary
 	SELECT t.id, geometry(PC_Explode(pa)) geom 
-	FROM ahn_pointcloud.ahn2terrain, terrain_polygons t
+	FROM pointcloud_ground, terrain_polygons t
 	WHERE ST_Intersects(
 		geom,
 		geometry(pa)
 	)
 ),
---3 sets of points from the pointcloud with different densities
+--3 sets of points from the pointcloud_ground with different densities
+/*
 --1) Points close to breaklines
 breakline_points AS (
 	SELECT a.geom
@@ -149,7 +157,7 @@ border_points AS (
 	AND ST_DWithin(a.geom, ST_ExteriorRing(b.geom),3)
 	AND Not ST_DWithin(a.geom, ST_ExteriorRing(b.geom),1)
 	WHERE random() < (1 * $zoom)
-),
+),*/
 --3) other points (more distant from breakline or border)
 other_points AS (
 	SELECT a.id, a.geom
@@ -212,7 +220,7 @@ if (!$result) {
   exit;
 }
 
-$res_string = "id;type;color;geom;label;\n";
+$res_string = "id;type;geom;\n";
 while ($row = pg_fetch_row($result)) {
 	$res_string = $res_string . implode(';',$row) . "\n";
 }

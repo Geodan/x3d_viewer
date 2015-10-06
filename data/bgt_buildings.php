@@ -6,7 +6,7 @@ $west  = $_REQUEST['west'];
 $east  = $_REQUEST['east'];
 
 header('Content-type: application/json');
-$conn = pg_pconnect("host=192.168.24.15 dbname=research user=postgres");
+$conn = pg_pconnect("host=titania dbname=research user=postgres");
 if (!$conn) {
   echo "A connection error occurred.\n";
   exit;
@@ -17,11 +17,16 @@ bounds AS (
 	--SELECT ST_Buffer(ST_Transform(ST_SetSrid(ST_MakePoint($lon, $lat),4326), 28992),200) geom
 	SELECT ST_MakeEnvelope($west, $south, $east, $north, 28992) geom
 ), 
+pointcloud AS (
+	SELECT PC_FilterEquals(pa,'classification',6) pa 
+	FROM ahn3_pointcloud.vw_ahn3, bounds 
+	WHERE ST_DWithin(geom, Geometry(pa),10) --patches should be INSIDE bounds
+),
 footprints AS (
 	SELECT ST_Force3D(ST_GeometryN(ST_SimplifyPreserveTopology(wkb_geometry,0.4),1)) geom,
 	a.ogc_fid id,
 	0 bouwjaar
-	FROM bgt_import.\"BuildingPart\" a, bounds b
+	FROM bgt_import.buildingpart a, bounds b
 	WHERE 1 = 1
 	--AND bgt_status = 'bestaand'
 	AND ST_Area(a.wkb_geometry) > 30
@@ -36,13 +41,14 @@ papoints AS ( --get points from intersecting patches
 		PC_Explode(b.pa) pt,
 		geom footprint
 	FROM footprints a
-	LEFT JOIN ahn_pointcloud.ahn2objects b ON (ST_Intersects(a.geom, geometry(b.pa)))
-),
+	LEFT JOIN pointcloud b ON (ST_Intersects(a.geom, geometry(b.pa)))
+),/*
 papatch AS (
 	SELECT
 		a.id, PC_PatchMin(PC_Union(pa), 'z') min
 	FROM footprints a
-	LEFT JOIN ahn_pointcloud.ahn2objects b ON (ST_Intersects(a.geom, geometry(b.pa)))
+	--LEFT JOIN ahn_pointcloud.ahn2objects b ON (ST_Intersects(a.geom, geometry(b.pa)))
+	LEFT JOIN pointcloud b ON (ST_Intersects(a.geom, geometry(b.pa)))
 	GROUP BY a.id
 ),
 footprintpatch AS ( --get only points that fall inside building, patch them
@@ -56,7 +62,7 @@ stats AS (
 		min
 	FROM footprintpatch a, papatch b
 	WHERE (a.id = b.id)
-),
+),*/
 stats_fast AS (
 	SELECT 
 		PC_PatchAvg(PC_Union(pa),'z') max,
@@ -65,7 +71,8 @@ stats_fast AS (
 		bouwjaar,
 		geom footprint
 	FROM footprints 
-	LEFT JOIN ahn_pointcloud.ahn2objects ON (ST_Intersects(geom, geometry(pa)))
+	--LEFT JOIN ahn_pointcloud.ahn2objects ON (ST_Intersects(geom, geometry(pa)))
+	LEFT JOIN pointcloud ON (ST_Intersects(geom, geometry(pa)))
 	GROUP BY footprints.id, footprint, bouwjaar
 ),
 polygons AS (
@@ -84,7 +91,7 @@ if (!$result) {
   echo "An error occurred.\n";
   exit;
 }
-$res_string = "id;type;color;geom;label;\n";
+$res_string = "id;type;color;geom;\n";
 while ($row = pg_fetch_row($result)) {
 	$res_string = $res_string . implode(';',$row) . "\n";
 }

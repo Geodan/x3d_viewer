@@ -7,7 +7,7 @@ $east  = $_REQUEST['east'];
 
 header('Content-type: application/json');
 //$conn = pg_pconnect("host=192.168.26.76 dbname=research user=postgres password=postgres");
-$conn = pg_pconnect("host=192.168.24.15 dbname=research user=postgres password=postgres");
+$conn = pg_pconnect("host=titania dbname=research user=postgres password=postgres");
 if (!$conn) {
   echo "A connection error occurred.\n";
   exit;
@@ -16,7 +16,12 @@ $query = "
 WITH 
 bounds AS (
 	SELECT ST_MakeEnvelope($west, $south, $east, $north, 28992) geom
-), 
+),
+pointcloud_building AS (
+	SELECT PC_FilterEquals(pa,'classification',6) pa  
+	FROM ahn3_pointcloud.vw_ahn3, bounds 
+	WHERE ST_DWithin(geom, Geometry(pa),10) --patches should be INSIDE bounds
+),
 footprints AS (
 	SELECT ST_Force3D(a.geom) geom,
 	a.ogc_fid id
@@ -32,13 +37,13 @@ papoints AS ( --get points from intersecting patches
 		PC_Explode(b.pa) pt,
 		geom footprint
 	FROM footprints a
-	LEFT JOIN ahn_pointcloud.ahn2objects b ON (ST_Intersects(a.geom, geometry(b.pa)))
+	LEFT JOIN pointcloud_building b ON (ST_Intersects(a.geom, geometry(b.pa)))
 ),
 papatch AS (
 	SELECT
 		a.id, PC_PatchMin(PC_Union(pa), 'z') min
 	FROM footprints a
-	LEFT JOIN ahn_pointcloud.ahn2objects b ON (ST_Intersects(a.geom, geometry(b.pa)))
+	LEFT JOIN pointcloud_building b ON (ST_Intersects(a.geom, geometry(b.pa)))
 	GROUP BY a.id
 ),
 footprintpatch AS ( --get only points that fall inside building, patch them
@@ -60,7 +65,7 @@ stats_fast AS (
 		footprints.id,
 		geom footprint
 	FROM footprints 
-	LEFT JOIN ahn_pointcloud.ahn2objects ON (ST_Intersects(geom, geometry(pa)))
+	LEFT JOIN pointcloud_building ON (ST_Intersects(geom, geometry(pa)))
 	GROUP BY footprints.id, footprint
 ),
 polygons AS (

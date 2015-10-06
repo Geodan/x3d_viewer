@@ -7,7 +7,7 @@ $east  = $_REQUEST['east'];
 
 header('Content-type: application/json');
 //$conn = pg_pconnect("host=192.168.26.76 dbname=research user=postgres password=postgres");
-$conn = pg_pconnect("host=192.168.24.15 dbname=research user=postgres password=postgres");
+$conn = pg_pconnect("host=titania dbname=research user=postgres password=postgres");
 if (!$conn) {
   echo "A connection error occurred.\n";
   exit;
@@ -16,7 +16,17 @@ $query = "
 WITH 
 bounds AS (
 	SELECT ST_MakeEnvelope($west, $south, $east, $north, 28992) geom
-), 
+),
+pointcloud_ground AS (
+	SELECT PC_FilterEquals(pa,'classification',2) pa --ground points 
+	FROM ahn3_pointcloud.vw_ahn3, bounds 
+	WHERE ST_DWithin(geom, Geometry(pa),10)
+),
+pointcloud_all AS (
+	SELECT pa pa --all points 
+	FROM ahn3_pointcloud.vw_ahn3, bounds 
+	WHERE ST_DWithin(geom, Geometry(pa),10)
+),
 footprints AS (
 	SELECT ST_Force3D(a.geom) geom,
 	a.ogc_fid id
@@ -32,13 +42,13 @@ papoints AS ( --get points from intersecting patches
 		PC_Explode(b.pa) pt,
 		geom footprint
 	FROM footprints a
-	LEFT JOIN ahn_pointcloud.ahn2terrain b ON (ST_Intersects(a.geom, geometry(b.pa)))
+	LEFT JOIN pointcloud_ground b ON (ST_Intersects(a.geom, geometry(b.pa)))
 ),
 papatch AS (
 	SELECT
 		a.id, PC_PatchMin(PC_Union(pa), 'z') min
 	FROM footprints a
-	LEFT JOIN ahn_pointcloud.ahn2objects b ON (ST_Intersects(a.geom, geometry(b.pa)))
+	LEFT JOIN pointcloud_all b ON (ST_Intersects(a.geom, geometry(b.pa)))
 	GROUP BY a.id
 ),
 footprintpatch AS ( --get only points that fall inside building, patch them
@@ -53,19 +63,8 @@ stats AS (
 	FROM footprintpatch a, papatch b
 	WHERE (a.id = b.id)
 ),
-stats_fast AS (
-	SELECT 
-		PC_PatchAvg(PC_Union(pa),'z') max,
-		PC_PatchMin(PC_Union(pa),'z') min,
-		footprints.id,
-		geom footprint
-	FROM footprints 
-	LEFT JOIN ahn_pointcloud.ahn2objects ON (ST_Intersects(geom, geometry(pa)))
-	GROUP BY footprints.id, footprint
-),
 polygons AS (
 	SELECT id, ST_Extrude(ST_Tesselate(ST_Translate(footprint,0,0, min)), 0,0,max-min) geom FROM stats
-	--SELECT ST_Tesselate(ST_Translate(footprint,0,0, min + 20)) geom FROM stats_fast
 )
 SELECT id,s.type as type, COALESCE(s.color, 'grey') color, ST_AsX3D(p.geom) geom
 FROM polygons p

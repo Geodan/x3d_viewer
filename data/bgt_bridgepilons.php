@@ -7,7 +7,7 @@ $east  = $_REQUEST['east'];
 
 header('Content-type: application/json');
 //$conn = pg_pconnect("host=192.168.26.76 dbname=research user=postgres password=postgres");
-$conn = pg_pconnect("host=192.168.24.15 dbname=research user=postgres password=postgres");
+$conn = pg_pconnect("host=titania dbname=research user=postgres password=postgres");
 if (!$conn) {
   echo "A connection error occurred.\n";
   exit;
@@ -17,10 +17,15 @@ WITH
 bounds AS (
 	SELECT ST_MakeEnvelope($west, $south, $east, $north, 28992) geom
 ),
+pointcloud_unclassified AS (
+	SELECT PC_FilterEquals(pa,'classification',1) pa --unclassified points 
+	FROM ahn3_pointcloud.vw_ahn3, bounds 
+	WHERE ST_DWithin(geom, Geometry(pa),10) --patches should be INSIDE bounds
+),
 footprints AS (
 	SELECT ST_Force3D(ST_SetSrid(a.wkb_geometry,28992)) geom,
 	a.ogc_fid id, a.class as type
-	FROM bgt_import.\"BridgeConstructionElement\" a, bounds b
+	FROM bgt_import.bridgeconstructionelement a, bounds b
 	WHERE 1 = 1
 	AND class = 'pijler'
 	AND ST_Intersects(ST_SetSrid(a.wkb_geometry,28992), b.geom)
@@ -33,7 +38,7 @@ papoints AS ( --get points from intersecting patches
 		PC_Explode(b.pa) pt,
 		geom
 	FROM footprints a
-	LEFT JOIN ahn_pointcloud.ahn2objects b ON (ST_Intersects(a.geom, geometry(b.pa)))
+	LEFT JOIN pointcloud_unclassified b ON (ST_Intersects(a.geom, geometry(b.pa)))
 ),
 papatch AS (
 	SELECT
