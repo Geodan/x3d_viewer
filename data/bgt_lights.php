@@ -21,8 +21,8 @@ bounds AS (
 
 points AS (
 	SELECT a.ogc_fid id, a.wkb_geometry geom 
-	FROM bgt_import.paal a, bounds b 
-	WHERE plus_type = 'lichtmast'
+	FROM bgt.vw_paal a, bounds b 
+	WHERE (plus_type = 'lichtmast' OR plus_type Is Null)
 	AND ST_Intersects(a.wkb_geometry, b.geom)
 
 ),
@@ -30,7 +30,7 @@ pointsz As (
 	SELECT a.id, ST_Translate(ST_Force3D(a.geom),0,0,COALESCE(PC_PatchAvg(pa, 'z'),-99)+5) geom
 	FROM points a
 	LEFT JOIN ahn_pointcloud.ahn2terrain b ON ST_Intersects(
-		geometry(pa), 
+		geometry(b.pa), 
 		a.geom
 	)
 )

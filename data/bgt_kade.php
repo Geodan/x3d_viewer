@@ -28,13 +28,13 @@ pointcloud_all AS (
 	WHERE ST_DWithin(geom, Geometry(pa),10)
 ),
 footprints AS (
-	SELECT ST_Force3D(a.geom) geom,
+	SELECT ST_Force3D(ST_Intersection(a.geom, b.geom)) geom,
 	a.ogc_fid id
-	FROM bgt.polygons a, bounds b
+	FROM bgt.vw_polygons a, bounds b
 	WHERE 1 = 1
-	AND type = 'kademuur'
+	AND (type = 'kademuur' OR class = 'border') 
 	AND ST_Intersects(a.geom, b.geom)
-	AND ST_Intersects(ST_Centroid(a.geom), b.geom)
+	--AND ST_Intersects(ST_Centroid(a.geom), b.geom)
 ),
 papoints AS ( --get points from intersecting patches
 	SELECT 

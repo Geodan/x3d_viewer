@@ -23,7 +23,8 @@ bounds AS (
 	SELECT ST_MakeEnvelope($west, $south, $east, $north, 28992) geom
 ),
 pointcloud_unclassified AS(
-	SELECT PC_FilterEquals(pa,'classification',2) pa  
+	SELECT  
+	PC_FilterEquals(pa,'classification',2) pa  
 	FROM ahn3_pointcloud.vw_ahn3, bounds 
 	WHERE ST_DWithin(geom, Geometry(pa),10) --patches should be INSIDE bounds
 ),

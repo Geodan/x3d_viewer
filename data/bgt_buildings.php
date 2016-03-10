@@ -23,17 +23,19 @@ pointcloud AS (
 	WHERE ST_DWithin(geom, Geometry(pa),10) --patches should be INSIDE bounds
 ),
 footprints AS (
-	SELECT ST_Force3D(ST_GeometryN(ST_SimplifyPreserveTopology(wkb_geometry,0.4),1)) geom,
+	SELECT ST_Force3D(ST_GeometryN(ST_SimplifyPreserveTopology(a.geom,0.4),1)) geom,
 	a.ogc_fid id,
 	0 bouwjaar
-	FROM bgt_import.buildingpart a, bounds b
+	FROM bgt.vw_polygons a, bounds b
 	WHERE 1 = 1
+	--AND a.ogc_fid = 688393 --DEBUG
 	--AND bgt_status = 'bestaand'
-	AND ST_Area(a.wkb_geometry) > 30
-	AND ST_Intersects(a.wkb_geometry, b.geom)
-	AND ST_Intersects(ST_Centroid(a.wkb_geometry), b.geom)
-	AND ST_IsValid(a.wkb_geometry)
-    --AND ST_GeometryType(a.wkb_geometry) = 'ST_MultiPolygon'
+	AND ST_Area(a.geom) > 30
+	AND ST_Intersects(a.geom, b.geom)
+	AND ST_Intersects(ST_Centroid(a.geom), b.geom)
+	AND ST_IsValid(a.geom)
+	AND a.type = 'pand'
+    --AND ST_GeometryType(a.geometrie2dgrondvlak) = 'ST_MultiPolygon'
 ),
 papoints AS ( --get points from intersecting patches
 	SELECT 
@@ -42,27 +44,7 @@ papoints AS ( --get points from intersecting patches
 		geom footprint
 	FROM footprints a
 	LEFT JOIN pointcloud b ON (ST_Intersects(a.geom, geometry(b.pa)))
-),/*
-papatch AS (
-	SELECT
-		a.id, PC_PatchMin(PC_Union(pa), 'z') min
-	FROM footprints a
-	--LEFT JOIN ahn_pointcloud.ahn2objects b ON (ST_Intersects(a.geom, geometry(b.pa)))
-	LEFT JOIN pointcloud b ON (ST_Intersects(a.geom, geometry(b.pa)))
-	GROUP BY a.id
 ),
-footprintpatch AS ( --get only points that fall inside building, patch them
-	SELECT id, PC_Patch(pt) pa, footprint
-	FROM papoints WHERE ST_Intersects(footprint, Geometry(pt))
-	GROUP BY id, footprint
-),
-stats AS (
-	SELECT  a.id, footprint, 
-		PC_PatchAvg(pa, 'z') max,
-		min
-	FROM footprintpatch a, papatch b
-	WHERE (a.id = b.id)
-),*/
 stats_fast AS (
 	SELECT 
 		PC_PatchAvg(PC_Union(pa),'z') max,
@@ -78,10 +60,18 @@ stats_fast AS (
 polygons AS (
 	SELECT 
 		id, bouwjaar,
-		ST_Extrude(ST_Tesselate(ST_Translate(footprint,0,0, min)), 0,0,max-min) geom FROM stats_fast
+		ST_Tesselate(
+			ST_Extrude(
+				ST_Translate(footprint,0,0, min)
+			, 0,0,max-min)
+		) 
+		geom FROM stats_fast
 	--SELECT ST_Tesselate(ST_Translate(footprint,0,0, min + 20)) geom FROM stats_fast
 )
-SELECT id,s.type as type, COALESCE(s.color, 'red') color, ST_AsX3D(p.geom) geom
+SELECT id,
+--s.type as type,
+'building' as type,
+COALESCE(s.color, 'red') color, ST_AsX3D(ST_GeometryN(p.geom,1)) geom
 FROM polygons p
 LEFT JOIN bgt.vw_style s ON (s.type = 'pand')
 ";

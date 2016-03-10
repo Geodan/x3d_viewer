@@ -18,18 +18,18 @@ bounds AS (
 	SELECT ST_MakeEnvelope($west, $south, $east, $north, 28992) geom
 ),
 pointcloud_unclassified AS (
-	SELECT PC_FilterEquals(pa,'classification',1) pa --unclassified points 
+	SELECT PC_FilterEquals(pa,'classification',26) pa --unclassified points 
 	FROM ahn3_pointcloud.vw_ahn3, bounds 
 	WHERE ST_DWithin(geom, Geometry(pa),10) --patches should be INSIDE bounds
 ),
 footprints AS (
-	SELECT ST_Force3D(ST_SetSrid(a.wkb_geometry,28992)) geom,
+	SELECT ST_Force3D(ST_SetSrid(ST_CurveToLine(a.wkb_geometry),28992)) geom,
 	a.ogc_fid id, a.class as type
 	FROM bgt_import.bridgeconstructionelement a, bounds b
 	WHERE 1 = 1
 	AND class = 'pijler'
-	AND ST_Intersects(ST_SetSrid(a.wkb_geometry,28992), b.geom)
-	AND ST_Intersects(ST_Centroid(ST_SetSrid(a.wkb_geometry,28992)), b.geom)
+	AND ST_Intersects(ST_SetSrid(ST_CurveToLine(a.wkb_geometry),28992), b.geom)
+	AND ST_Intersects(ST_Centroid(ST_SetSrid(ST_CurveToLine(a.wkb_geometry),28992)), b.geom)
 ),
 papoints AS ( --get points from intersecting patches
 	SELECT 
@@ -58,21 +58,22 @@ filter AS (
 		id,
 		type,
 		geom,
-		PC_FilterBetween(pa, 'z',avg-1, avg+1) pa,
+		--is dit filter nog nodig?
+		PC_FilterBetween(pa, 'z',avg-1, avg+1) pa, 
 		min, max, avg
 	FROM papatch
 ),
 stats AS (
 	SELECT  id, geom,type,
 		max,
-		min,
+		0 as min,
 		avg,
 		PC_PatchAvg(pa,'z') z
 	FROM filter
 	GROUP BY id, geom, type, max, min, avg, z
 ),
 polygons AS (
-	SELECT id, type,ST_Extrude(ST_Tesselate(ST_Translate(geom,0,0, min)), 0,0,avg-min) geom FROM stats
+	SELECT id, type,ST_Extrude(ST_Tesselate(ST_Translate(geom,0,0, min)), 0,0,avg-min -0.1) geom FROM stats
 )
 SELECT id, type, '0.66 0.37 0.13' as color, ST_AsX3D(polygons.geom) geom
 FROM polygons

@@ -36,7 +36,7 @@ terrain AS (
 	  (ST_Dump(
 		ST_Intersection(a.geom, b.geom)
 	  )).geom
-	FROM bgt.polygons a, bounds b
+	FROM bgt.vw_polygons a, bounds b
 	WHERE ST_Intersects(a.geom, b.geom)
 	AND ST_IsValid(a.geom)
 	and class = 'water'
@@ -47,7 +47,8 @@ terrain AS (
 )
 ,polygonsz AS ( 
 	SELECT a.id, a.fid, a.type, a.class, 
-	ST_Translate(ST_Force3D(a.geom), 0,0,min(PC_PatchMin(b.pa,'z'))) geom
+	--ST_Translate(ST_Force3D(a.geom), 0,0,COALESCE(min(PC_PatchMin(b.pa,'z')),0)) geom
+	ST_Translate(ST_Force3D(a.geom), 0,0,0) geom --fixed level
 	FROM polygons a 
 	LEFT JOIN pointcloud_water b
 	ON ST_Intersects(

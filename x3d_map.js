@@ -76,7 +76,7 @@ var render = function(ns, divid, config){
 		loadlist.forEach(function(val){
 			if (1 == 1 || val.reload){
 				val.reload = false;
-				dsv(val.url + '?west='+bbox[0]+'&east='+bbox[2]+'&south='+bbox[1]+'&north='+bbox[3], function(d){
+				dsv(val.url + '?set='+val.name+'&west='+bbox[0]+'&east='+bbox[2]+'&south='+bbox[1]+'&north='+bbox[3], function(d){
 					that.demTileLoaded(d);
 				});
 			}
@@ -167,15 +167,15 @@ var render = function(ns, divid, config){
 			.attr('frustumCulling',true)
 			.attr('smallFeatureCulling',true)
 			.attr('smallFeatureThreshold',3)
-			.attr('lowPriorityCulling', true)
-			.attr('lowPriorityThreshold',0.99);
+			//.attr('lowPriorityCulling', true)
+			//.attr('lowPriorityThreshold',0.99);
 		
 		this.scene.append('x3d:Background')
 			.classed('material',true)
 			.attr('skyColor', '0.1 0.1 0.1');
 		light1 = this.scene.append('DirectionalLight').classed('DirectionalLight',true)
 			//.attr('color','orange')
-			.attr('direction','0.2 0.2 -1')
+			.attr('direction','0.2 0.2 -0.5')
 			.attr('intensity','0.2')
 			.attr('shadowIntensity','0')
 			.attr('shadowCascades',"0")
@@ -203,8 +203,8 @@ var render = function(ns, divid, config){
            .attr( "centerOfRotation", centerX + " " + centerY + " 0" )
            .attr( "position", centerX + " " + (centerY - 300) + " " + (cameraHeight))
 		   //.attr( 'fieldOfView' , 1.8)
-		   .attr( 'zNear',"1")
-		   .attr('zFar',"800")
+		   //.attr( 'zNear',"1")
+		   //.attr('zFar',"800")
            .attr( "orientation", "0.2 0 0 0.8" );
         this.scene.append("x3d:ViewPoint")
            .attr('id','leiden1')
@@ -263,7 +263,36 @@ var render = function(ns, divid, config){
     ns.ThreeDMap.prototype.tileLoaded = function (tile) {
     	var dragging = false;
 		var data = tile.data;
-		if (data[0] && data[0].type == 'light'){
+		
+		if (data[0] && data[0].type == 'buildingx'){
+			var cubes = this.scene.selectAll('.building').data(data,function(d){return d.id;});
+			var obj = cubes.enter().append('shape')
+				.classed('building',true)
+				.classed('toposhape',true)
+				.html(function(d){
+					return d.geom;
+				});
+			obj.select('shape').append('appearance').append('material').classed('material', true)
+				.attr('diffuseColor',"brown");
+		}
+		else if (data[0] && data[0].type == 'stem'){
+			var stems = this.scene.selectAll('.stem').data(data,function(d){return d.id;});
+			var shape = stems.enter().append('transform')
+				.classed('stem',true)
+				.classed('toposhape',true)
+				.attr('id', function(d){return 'col'+d.id;})
+				.attr('translation', function(d){
+					return d.x + ' ' + d.y + ' '+ (d.z-3);
+				})
+				.attr('rotation','1 0 0 1.5')
+				.append('shape').classed('post', true);
+			shape.append('appearance').append('material').classed('material', true)
+				.attr('diffuseColor',"brown");
+			shape.append('Cylinder')
+				.attr('height','5')
+				.attr('radius','0.3');
+		}
+		else if (data[0] && data[0].type == 'light'){
 			//<SpotLight on='TRUE' intensity='1.0000' ambientIntensity='0.0000' color='1.0000 0.9843 0.8275' direction='-0.1962 -0.9806 -0.0000' location='45.9143 50.3673 -62.9329' radius='200.0000' beamWidth='0.3226' cutOffAngle='0.7577' />
 			var lights = this.scene.selectAll('.light').data(data,function(d){return d.id;});
 			var shape = lights.enter().append('transform')
@@ -284,7 +313,7 @@ var render = function(ns, divid, config){
 			//		return d.x + ' ' + d.y + ' '+ d.z;
 			//	});
 			shape.append('box')
-				.attr('radius',5)
+				//.attr('radius',5)
 				.attr('size','0.3 0.3 0.1');
 			
 			var shape = lights.enter().append('transform')
@@ -292,20 +321,36 @@ var render = function(ns, divid, config){
 				.classed('toposhape',true)
 				.attr('id', function(d){return 'col'+d.id;})
 				.attr('translation', function(d){
-					return d.x + ' ' + d.y + ' '+ (d.z-2);
+					return d.x + ' ' + d.y + ' '+ (d.z-3);
 				})
 				.attr('rotation','1 0 0 1.5')
 				.append('shape').classed('post', true);
 			shape.append('appearance').append('material').classed('material', true)
 				.attr('diffuseColor',"red");
 			shape.append('Cylinder')
-				.attr('height','4')
+				.attr('height','5')
 				.attr('radius','0.1');
-
+				/*
+			var shape = lights.enter().append('pointlight')
+				.attr('radius',10).attr('intensity',0.5)
+				.attr('ambientIntensity',0)
+				.attr('
+				.attr('location',d=>d.x + ' ' + d.y + ' '+ d.z);
+				*/
 		    //lights.exit().remove();
 		    //data.forEach(function(d){console.log(d.id);});
 		    //data.forEach(function(d){console.log('<pointlight location='+d.x + ' ' + d.y + ' '+ d.z+'>');});
 		    
+		}
+		else if (data[0] && data[0].type == 'denbosch'){
+			var points = this.scene.selectAll('.pointset').data(data,function(d){return d.id;});
+			var shape = points.enter().append('shape')
+				.classed('pointset', true)
+				.attr('id', function(d){return d.id;});
+			shape.html(function(d){
+				return d.geom;
+			});
+			
 		}
 		/*
 		if (data[0] && data[0].type == 'tree'){
@@ -398,11 +443,11 @@ var render = function(ns, divid, config){
 				for (var attr in themeconfig.gray.materials[type]){
 					material.attr(attr,themeconfig.gray.materials[type][attr]);
 				}
-				if (type == 'tree'){
-					material.attr('emissiveColor','brown');
+				if (type == 'blokje'){
+					material.attr('emissiveColor',x.color);
 				}
-				else if (type == 'building'){
-					material.attr('emissiveColor','orange');
+				if (type == 'tree'){
+					material.attr('emissiveColor',x.color);
 				}
 				else if (type == 'unclassified'){
 					material.attr('emissiveColor','white');

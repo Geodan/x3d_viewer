@@ -27,20 +27,21 @@ bounds AS (
 	SELECT ST_Segmentize(ST_MakeEnvelope($west, $south, $east, $north, 28992),$segmentlength) geom
 ),
 pointcloud AS (
-	SELECT PC_FilterBetween(pa,'classification',0,3) pa --ground points 
+	SELECT PC_FilterEquals(pa,'classification',26) pa --ground points 
 	FROM ahn3_pointcloud.vw_ahn3, bounds 
 	WHERE ST_DWithin(geom, Geometry(pa),10) --patches should be INSIDE bounds
 ),
+--TODO: introduce extra vertices where brdge pilon intersects
 footprints AS (
 	SELECT nextval('counter') id, ogc_fid fid, class as type,
 	  (ST_Dump(
-		ST_Intersection(ST_SetSrid(a.wkb_geometry,28992), b.geom)
+		ST_Intersection(ST_SetSrid(ST_CurveToLine(a.wkb_geometry),28992), b.geom)
 	  )).geom
 	FROM bgt_import.bridgeconstructionelement a, bounds b
 	WHERE 1 = 1
 	AND class = 'dek'
-	AND ST_Intersects(ST_SetSrid(a.wkb_geometry,28992), b.geom)
-	--AND ST_Intersects(ST_Centroid(ST_SetSrid(a.wkb_geometry,28992)), b.geom)
+	AND ST_Intersects(ST_SetSrid(ST_CurveToLine(a.wkb_geometry),28992), b.geom)
+	--AND ST_Intersects(ST_Centroid(ST_SetSrid(ST_CurveToLine(a.wkb_geometry),28992)), b.geom)
 )
 ,polygons AS (
 	SELECT * FROM footprints
@@ -83,7 +84,7 @@ emptyz AS (
 ,filter AS (
 	SELECT
 		a.id, a.fid, a.type, a.path, a.ring, a.geom,
-		PC_Get(PC_Explode(PC_FilterBetween(pa, 'z',avg-1, avg+1)),'z') z
+		PC_Get(PC_Explode(PC_FilterBetween(pa, 'z',avg-0.2, avg+0.2)),'z') z
 	FROM emptyz a
 )
 -- assign z-value for every boundary point

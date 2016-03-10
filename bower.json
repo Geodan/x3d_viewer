@@ -20,7 +20,6 @@
     "tests"
   ],
   "dependencies": {
-    "d3": "~3.5.6",
-    "7541257e0309d507c311de0adf7fb110903677d2": "https://github.com/x3dom/x3dom/commit/7541257e0309d507c311de0adf7fb110903677d2"
+    "d3": "~3.5.6"
   }
 }

@@ -1,0 +1,30 @@
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+        <title>My first X3DOM page</title> 
+        <script type="text/javascript" src="http://www.x3dom.org/download/1.7/x3dom-full.js">
+            
+        </script> 
+        <link rel="stylesheet" type="text/css" href="http://www.x3dom.org/download/1.7/x3dom.css"></link>
+        <script src="./bower_components/d3/d3.min.js">
+        </script> 
+    </head> 
+    <body>
+    <?xml version="1.0" encoding="UTF-8"?> DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.0//EN" "http://www.web3d.org/specifications/x3d-3.0.dtd" 
+    <x3d width="1200" height="800">
+      <scene class="scene" render="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" pickmode="idBuf" dopickpass="true">
+
+        <background class="material" skycolor="0.1 0.1 0.1" groundcolor groundangle skyangle backurl bottomurl fronturl lefturl righturl topurl></background> 
+        <directionallight class="DirectionalLight" direction="0.2 0.2 -1" intensity="0.2" shadowintensity="0" shadowcascades="0" shadowfiltersize="0" color="1,1,1" on="true" shadowmapsize="1024" znear="-1" zfar="-1" shadowsplitfactor="1" shadowsplitoffset="0.1"></directionallight> 
+        <viewpoint id="viewpointwebgl1" centerofrotation="0 0 0" position="20 20 20" orientation="0.2 0 0 0.8" fieldofview="0.785398" znear="-1" zfar="-1"></viewpoint> 
+        <navigationinfo id="navInfo" headlight="true" type="&quot;EXAMINE&quot; &quot;ANY&quot;" typeparams="-0.4,60,0.05,2.8" explorationmode="all" avatarsize="0.25,1.6,0.75" speed="1" transitiontime="1" transitiontype="LINEAR "></navigationinfo> 
+        	<shape render="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true" class="pand toposhape" id="688393">
+        		<IndexedFaceSet  convex='false' coordIndex='0 1 2 3 4 5 6 7 -1 8 9 10 11 12 13 14 15 -1 16 17 18 19 -1 20 21 22 23 -1 24 25 26 27 -1 28 29 30 31 -1 32 33 34 35 -1 36 37 38 39 -1 40 41 42 43 -1 44 45 46 47'><Coordinate point='0 0 0 0 10 0 30 10 0 30 0 0 20 0 0 20 5 0 10 5 0 10 0 0 0 0 10 10 0 10 10 5 10 20 5 10 20 0 10 30 0 10 30 10 10 0 10 10 0 0 0 0 0 10 0 10 10 0 10 0 0 10 0 0 10 10 30 10 10 30 10 0 30 10 0 30 10 10 30 0 10 30 0 0 30 0 0 30 0 10 20 0 10 20 0 0 20 0 0 20 0 10 20 5 10 20 5 0 20 5 0 20 5 10 10 5 10 10 5 0 10 5 0 10 5 10 10 0 10 10 0 0 10 0 0 10 0 10 0 0 10 0 0 0' /></IndexedFaceSet>
+        		<appearance sorttype="auto" alphaclipthreshold="0.1">
+        			<material ambientintensity="0.2" diffusecolor="orange" emissivecolor="0,0,0" shininess="0.2" specularcolor="0,0,0" class="material" transparency="0"></material> 
+        		</appearance> 
+        	</shape> 
+       </scene> 
+     </x3d> 
+    </body> 
+</html> 

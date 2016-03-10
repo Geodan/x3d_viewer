@@ -18,7 +18,7 @@ bounds AS (
 	SELECT ST_MakeEnvelope($west, $south, $east, $north, 28992) geom
 ),
 pointcloud_building AS (
-	SELECT PC_FilterEquals(pa,'classification',6) pa  
+	SELECT PC_FilterEquals(pa,'classification',1) pa --unclassified  
 	FROM ahn3_pointcloud.vw_ahn3, bounds 
 	WHERE ST_DWithin(geom, Geometry(pa),10) --patches should be INSIDE bounds
 ),
@@ -69,8 +69,8 @@ stats_fast AS (
 	GROUP BY footprints.id, footprint
 ),
 polygons AS (
-	SELECT id, ST_Extrude(ST_Tesselate(ST_Translate(footprint,0,0, min)), 0,0,max-min) geom FROM stats
-	--SELECT ST_Tesselate(ST_Translate(footprint,0,0, min + 20)) geom FROM stats_fast
+	--SELECT id, ST_Extrude((ST_Translate(ST_ExteriorRing(footprint),0,0, min)), 0,0,max-min) geom FROM stats
+	SELECT ST_Tesselate(ST_Translate(footprint,0,0, min + 20)) geom FROM stats_fast
 )
 SELECT id,'building' as type, '0.66 0.37 0.13' as color, ST_AsX3D(polygons.geom) geom
 FROM polygons

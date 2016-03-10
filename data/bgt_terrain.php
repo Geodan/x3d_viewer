@@ -28,19 +28,19 @@ bounds AS (
 ),
 pointcloud_ground AS (
 	SELECT PC_FilterEquals(pa,'classification',2) pa 
-	FROM ahn3_pointcloud.vw_ahn3, bounds 
+	FROM ahn3_pointcloud.vw_ahn3, bounds
 	WHERE ST_DWithin(geom, Geometry(pa),10) --patches should be INSIDE bounds
 ),
 terrain AS (
-	SELECT nextval('counter') id, ogc_fid fid, type as type, class,
+	SELECT nextval('counter') id, ogc_fid fid, COALESCE(type,'transitie') as type, class,
 	  (ST_Dump(
 		ST_Intersection(a.geom, b.geom)
 	  )).geom
-	FROM bgt.polygons a, bounds b
+	FROM bgt.vw_polygons a, bounds b
 	WHERE ST_Intersects(a.geom, b.geom)
-	AND ST_IsValid(a.geom)
 	and class != 'water'
 	and type != 'kademuur'
+	and class != 'building'
 )
 ,polygons AS (
 	SELECT * FROM terrain
