@@ -203,21 +203,24 @@ var render = function(ns, divid, config){
            .attr( "centerOfRotation", centerX + " " + centerY + " 0" )
            .attr( "position", centerX + " " + (centerY - 300) + " " + (cameraHeight))
 		   //.attr( 'fieldOfView' , 1.8)
-		   //.attr( 'zNear',"1")
+		   		.attr( 'zNear',"30")
 		   //.attr('zFar',"800")
            .attr( "orientation", "0.2 0 0 0.8" );
         this.scene.append("x3d:ViewPoint")
            .attr('id','leiden1')
+           .attr( 'zNear',"30")
            .attr( "centerOfRotation",'93610.0181 463873.2183 25.6168' )
            .attr('position','93610.0181 463873.2183 25.6168')
            .attr('orientation','-0.3716 0.6002 0.7083 4.1466');
         this.scene.append("x3d:ViewPoint")
            .attr('id','leiden2')
+           .attr( 'zNear',"30")
            .attr( "centerOfRotation",'93975.3693 463909.0736 56.0040')
            .attr('position','93975.3693 463909.0736 56.0040')
            .attr('orientation','0.4143 0.4794 0.7736 2.1176');
         this.scene.append("x3d:ViewPoint")
            .attr('id','leiden3')
+           .attr( 'zNear',"30")
            .attr( "centerOfRotation",'93699.7792 463720.8471 30.8476')
            .attr('position','93699.7792 463720.8471 30.8476')
            .attr('orientation','0.9812 -0.1418 -0.1309 1.0953');   
