@@ -16,7 +16,7 @@ $zoom = 100 / $diagonal;
 $segmentlength = $width / 10;
 
 header('Content-type: application/json');
-$conn = pg_pconnect("host=192.168.24.15 dbname=research user=postgres password=postgres");
+$conn = pg_pconnect("host=titania dbname=research user=postgres password=postgres");
 if (!$conn) {
   echo "A connection error occurred.\n";
   exit;
@@ -26,12 +26,17 @@ WITH
 bounds AS (
 	SELECT ST_Segmentize(ST_MakeEnvelope($west, $south, $east, $north, 28992),$segmentlength) geom
 ),
+pointcloud_water AS (
+	SELECT PC_FilterEquals(pa,'classification',9) pa 
+	FROM ahn3_pointcloud.vw_ahn3, bounds 
+	WHERE ST_Intersects(geom, Geometry(pa)) --patches should be INSIDE bounds
+),
 terrain AS (
 	SELECT nextval('counter') id, ogc_fid fid, type as type, class,
 	  (ST_Dump(
 		ST_Intersection(a.geom, b.geom)
 	  )).geom
-	FROM bgt.polygons a, bounds b
+	FROM bgt.vw_polygons a, bounds b
 	WHERE ST_Intersects(a.geom, b.geom)
 	AND ST_IsValid(a.geom)
 	and class = 'water'
@@ -42,9 +47,10 @@ terrain AS (
 )
 ,polygonsz AS ( 
 	SELECT a.id, a.fid, a.type, a.class, 
-	ST_Translate(ST_Force3D(a.geom), 0,0,min(PC_PatchMin(b.pa,'z'))) geom
+	--ST_Translate(ST_Force3D(a.geom), 0,0,COALESCE(min(PC_PatchMin(b.pa,'z')),0)) geom
+	ST_Translate(ST_Force3D(a.geom), 0,0,0) geom --fixed level
 	FROM polygons a 
-	LEFT JOIN ahn_pointcloud.ahn2terrain b
+	LEFT JOIN pointcloud_water b
 	ON ST_Intersects(
 		a.geom,
 		geometry(pa)

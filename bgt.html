@@ -66,26 +66,30 @@
 var themeconfig = {
 	gray: {
 	 materials: {
-		pand: {shininess:'0.078125', ambientIntensity:'0.142857', diffuseColor: 'gray',transparency: '0'},
-		waterloop: {specularColor: '0.823529 0.705882 0.54902', diffuseColor: 'gray', shininess: '1'},
+		pand: {diffuseColor: 'orange',transparency: '0'},
+		waterloop: {specularColor: '0.823529 0.705882 0.54902', diffuseColor: '0.9 1 1', shininess: '1'},
 		voetpad: {diffuseColor: 'gray'},
 		rijbaan_lokale_weg: {diffuseColor: 'gray'},
 		open_verharding:{diffuseColor: 'gray'},
 		erf:{diffuseColor: 'gray'},
 		groenvoorziening:{diffuseColor: 'green'},
+		'gemengd bos':{diffuseColor: 'green'},
+		struiken: {diffuseColor: 'green'},
 		dek:{diffuseColor: 'gray'},
 		pijler: {diffuseColor: 'gray'},
 		light: {emissiveColor: 'yellow', transparency: 0},
 		post: {diffuseColor: 'gray'},
+		roof: {diffuseColor: 'orange'},
 		scene: {skyColor: '0.1 0.1 0.1'}
 	 }
 	},
 	light: {
 	  materials: {
-		pand: {transparency: '0',diffuseColor: 'white'},
-		waterloop: {diffuseColor: '0.5 0.5 0.8'},
+		pand: {emissiveColor: '0.9 0.9 0.9',diffuseColor: 'white'},
+		waterloop: {diffuseColor: '0.7 0.7 1.0'},
 		light: {emissiveColor: 'black', transparency: 1},
-		scene: {skyColor: '0.4 0.6 0.8'}
+		scene: {skyColor: '0.4 0.6 0.8'},
+		erf:{diffuseColor: 'white'},
 	  }
 	},
 	functional: {
@@ -168,13 +172,13 @@ var input = div.append('input');
 input.on('blur', function(d){
     var url = '/service/geosearch/free?q='+this.value+'&facet=true&facet.field=type&wt=json&_=1413275899673';
     d3.json(url, function(z){
-            var point = z.response.docs[0].centroid[0];
-            var wgscoords = point.replace('POINT(','').replace(')','').split(' ');
-            var toproj = '+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.999908 +x_0=155000 +y_0=463000 +ellps=bessel +units=m +towgs84=565.2369,50.0087,465.658,-0.406857330322398,0.350732676542563,-1.8703473836068,4.0812 +no_defs';
-            var coords = proj4(toproj, wgscoords);
+            var point = z.response.docs[0].geom_rd;
+            var coords = point.replace('POINT(','').replace(')','').split(' ');
+            //var toproj = '+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.999908 +x_0=155000 +y_0=463000 +ellps=bessel +units=m +towgs84=565.2369,50.0087,465.658,-0.406857330322398,0.350732676542563,-1.8703473836068,4.0812 +no_defs';
+            //var coords = proj4(toproj, wgscoords);
             var x = Math.round(coords[0]);
             var y = Math.round(coords[1]);
-            var radius = 300; 
+            var radius = 200; 
             map.dim.minx = x -radius;
             map.dim.maxx = x +radius;
             map.dim.miny = y -radius;
@@ -256,15 +260,23 @@ div.append('button').on('click', function(){
 var loadlist = [
     //{name: 'bridge',reload: true, url: './data/pc_bgt_bridge_service.php'}
     //{name: 'nwb',reload: true, url: './data/nwb_wegvak.php'}
-    
-	//,{name: 'tree',		reload: true, url: './data/bgt_trees.php'}
-	,{name: 'terrain2', reload: true, url: './data/bgt_terrain.php'}
-	,{name: 'building', reload: false, url: './data/bgt_buildings.php'}
-	,{name: 'scheiding',reload: false, url: './data/bgt_scheiding.php'}
+    //POINTS
+	//,{name: 'ground',		reload: true, url: './data/bgt_groundpoints.php'}
+	,{name: 'tree',		reload: true, url: './data/pc_treepoints.php'}
+	//,{name: 'object',		reload: true, url: './data/bgt_objectpoints.php'}
+	//,{name: 'building',		reload: true, url: './data/bgt_buildingpoints.php'}
+	//,{name: 'ahn2objects',		reload: true, url: './data/bgt_ahn2objectpoints.php'}
+	//,{name: 'denbosch',		reload: true, url: './data/bgt_denboschpoints.php'}
+	//VECTOR
+	//,{name: 'roofskeleton', reload: true, url: '/service/bgt3d'} //'./data/bgt_terrain.php'}
+	,{name: 'terrain', reload: true, url: '/service/bgt3d'} //'./data/bgt_terrain.php'}
+	,{name: 'buildings', reload: false, url: '/service/bgt3d'}  //data/bgt_buildings.php'}
+	//,{name: 'roof', reload: false, url: './data/bgt_roof.php'}
+	,{name: 'scheiding',reload: false, url: '/service/bgt3d'},//'./data/bgt_scheiding.php'}
 	,{name: 'brug',		reload: true, url: './data/bgt_bridge.php'}
 	,{name: 'brug', 	reload: false, url: './data/bgt_bridgepilons.php'}
-	,{name: 'kade', 	reload: false, url: './data/bgt_kade.php'}
-	,{name: 'lights', 	reload: true, url: './data/bgt_lights.php'}
+	,{name: 'kade', 	reload: false, url: '/service/bgt3d'},//'./data/bgt_kade.php'}
+	//,{name: 'lights', 	reload: true, url: './data/bgt_lights.php'}
 	,{name: 'water', 	reload: true, url: './data/bgt_water.php'}
 ]; 
 
@@ -273,7 +285,10 @@ render(wxs3, 'webgl1', {
 	//bbox:'188045,428786, 188411,429044', //klein stukje nijmegen (Valkhof)
 	//bbox: '154459,463904,154947,464231' //Amersfoort
 	//bbox: '154678.0,463991.2,154783.9,464063.7' //Amersfoort_small
-	bbox: '93616,463691,93987,463981' //Leiden
+	bbox: '93616,463691,93887,463981' //Leiden
+	//bbox: '93468.9,462610.7,93667.9,462735.3' //Leiden prof wijk
+	//bbox: '78657,455471,78828,455679' //Scheveningen
+	//bbox: '148945,411439, 148975,411471' //Den Bosch
 	//bbox: '90870,391146, 91346,392412'
 });
 

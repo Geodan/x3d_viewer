@@ -15,7 +15,7 @@ $segmentlength = 5; //round($area / (25*25));
 
 header('Content-type: application/json');
 //$conn = pg_pconnect("host=192.168.26.76 dbname=research user=postgres password=postgres");
-$conn = pg_pconnect("host=192.168.24.15 dbname=research user=postgres password=postgres");
+$conn = pg_pconnect("host=titania dbname=research user=postgres password=postgres");
 if (!$conn) {
   echo "A connection error occurred.\n";
   exit;

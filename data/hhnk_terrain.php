@@ -16,7 +16,7 @@ $zoom = 10 / $diagonal;
 $segmentlength = $width / 10;
 
 header('Content-type: application/json');
-$conn = pg_pconnect("host=192.168.24.15 dbname=research user=postgres password=postgres");
+$conn = pg_pconnect("host=titania dbname=research user=postgres password=postgres");
 if (!$conn) {
   echo "A connection error occurred.\n";
   exit;
@@ -25,6 +25,11 @@ $query = "
 WITH RECURSIVE
 bounds AS (
 	SELECT ST_Segmentize(ST_MakeEnvelope($west, $south, $east, $north, 28992),$segmentlength) geom
+),
+pointcloud_ground AS (
+	SELECT PC_FilterEquals(pa,'classification',2) pa 
+	FROM ahn3_pointcloud.vw_ahn3, bounds
+	WHERE ST_DWithin(geom, Geometry(pa),10) --patches should be INSIDE bounds
 ),
 terrain AS (
 	SELECT nextval('counter') id, id as fid, \"CODE_BETEKENIS\" as type,
@@ -61,15 +66,16 @@ terrain AS (
 	SELECT a.id, a.fid, type, a.path, a.geom,  --find closes patch to point
 	COALESCE(b.pa, 
 		(
-		SELECT b.pa FROM ahn_pointcloud.ahn2terrain b
+		SELECT b.pa 
+		FROM pointcloud_ground b
 		ORDER BY a.geom <#> Geometry(b.pa) 
 		LIMIT 1
 		)
 	) pa
-	FROM edge_points a LEFT JOIN ahn_pointcloud.ahn2terrain b
+	FROM edge_points a LEFT JOIN pointcloud_ground b
 	ON ST_Intersects(
 		a.geom,
-		geometry(pa)
+		geometry(b.pa)
 	)
 )
 ,emptyz AS ( --find closest pt for every boundary point
@@ -112,12 +118,13 @@ terrain AS (
 	SELECT a.id, a.path, a.geom,  --find closes patch to point
 	COALESCE(b.pa, 
 		(
-		SELECT b.pa FROM ahn_pointcloud.ahn2terrain b
+		SELECT b.pa 
+		FROM pointcloud_ground b
 		ORDER BY a.geom <#> Geometry(b.pa) 
 		LIMIT 1
 		)
 	) pa
-	FROM breaklines_vertices a LEFT JOIN ahn_pointcloud.ahn2terrain b
+	FROM breaklines_vertices a LEFT JOIN pointcloud_ground b
 	ON ST_Intersects(
 		a.geom,
 		geometry(pa)
@@ -147,7 +154,7 @@ breaklines_emptyz AS ( --find closest pt for every boundary point
 	SELECT t.id, t.type, pa
 	--PC_PatchMax(pa, 'z') - PC_PatchMin(pa,'z') as delta, 
 	--ST_Intersects(ST_ExteriorRing(geom), Geometry(pa)) intersects
-	FROM ahn_pointcloud.ahn2terrain, terrain_polygons t
+	FROM pointcloud_ground, terrain_polygons t
 	WHERE ST_Intersects(
 		geom,
 		geometry(pa)
@@ -155,7 +162,7 @@ breaklines_emptyz AS ( --find closest pt for every boundary point
 )
 ,all_points AS ( -- get pts in every boundary
 	SELECT geometry(PC_Explode(pa)) geom 
-	FROM ahn_pointcloud.ahn2terrain, terrain_polygons t
+	FROM pointcloud_ground, terrain_polygons t
 	WHERE ST_Intersects(
 		geom,
 		geometry(pa)

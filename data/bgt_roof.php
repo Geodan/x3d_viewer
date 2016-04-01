@@ -25,16 +25,20 @@ WITH
 bounds AS (
 	SELECT ST_Segmentize(ST_MakeEnvelope($west, $south, $east, $north, 28992),1) geom
 ),
+pointcloud_building AS (
+	SELECT PC_FilterEquals(pa,'classification',6) pa   
+	FROM ahn3_pointcloud.vw_ahn3, bounds 
+	WHERE ST_DWithin(geom, Geometry(pa),10) --patches should be INSIDE bounds
+),
 footprints AS (
 	SELECT 
-		a.identificatie id,
-		ST_Buffer(ST_Force2D(geometrie_28992),-0.5) geom
-	FROM bagimproved_201405.pand a, bounds b
-	WHERE ST_Intersects(a.geometrie_28992, b.geom)
-	AND ST_Intersects(ST_Centroid(a.geometrie_28992), b.geom)
-	AND eind_geldigheid Is Null
-	--AND gebw_type = 'p'
-	--AND a.ogc_fid = '25531' OR a.ogc_fid = '25529' OR a.ogc_fid = '25528' OR a.ogc_fid = '25610'
+		a.ogc_fid id,
+		ST_Buffer(ST_Force2D(geometrie2dgrondvlak),-0.5) geom
+	FROM bgt_import.buildingpart a, bounds b
+	WHERE ST_Intersects(a.geometrie2dgrondvlak, b.geom)
+	AND ST_Intersects(ST_Centroid(a.geometrie2dgrondvlak), b.geom)
+	AND ST_Area(a.geometrie2dgrondvlak) > 30
+	AND ST_IsValid(a.geometrie2dgrondvlak)
 ),
 /** PART 1, find roofedge **/
 roofcornerpts AS (
@@ -45,12 +49,12 @@ edge_points_patch AS ( --get closest patch to every vertex
 	SELECT a.id, a.path, a.geom,  --find closes patch to point
 	COALESCE(b.pa, 
 		(
-		SELECT b.pa FROM ahn_pointcloud.ahn2objects b
+		SELECT b.pa FROM pointcloud_building b
 		ORDER BY a.geom <#> Geometry(b.pa) 
 		LIMIT 1
 		)
 	) pa
-	FROM roofcornerpts a LEFT JOIN ahn_pointcloud.ahn2objects b
+	FROM roofcornerpts a LEFT JOIN pointcloud_building b
 	ON ST_Intersects(
 		a.geom,
 		geometry(pa)
@@ -83,13 +87,13 @@ emptyz AS ( --find closest pt for every boundary point
 		PC_Explode(b.pa) pt,
 		geom footprint
 	FROM footprints a
-	LEFT JOIN ahn_pointcloud.ahn2objects b ON (ST_Intersects(a.geom, geometry(b.pa)))
+	LEFT JOIN pointcloud_building b ON (ST_Intersects(a.geom, geometry(b.pa)))
 ),
 points AS ( --get only points that fall inside building, patch them
 	SELECT id, geometry(pt) geom
 	FROM papoints 
 	WHERE ST_Intersects(footprint, geometry(pt))
-	AND random() < 0.3
+	AND random() < 0.1
 	UNION
 	SELECT id, St_ExteriorRing(geom) geom FROM polygonsz
 	WHERE ST_IsValid(geom)

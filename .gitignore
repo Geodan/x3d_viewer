@@ -1,6 +1,7 @@
 #bower stuff
 #bower*.*
 bower_components
+node_modules
 
 # Compiled source #
 ###################
@@ -27,7 +28,7 @@ bower_components
 # Logs and databases #
 ######################
 *.log
-*.sql
+#*.sql
 *.sqlite
  
 # OS generated files #

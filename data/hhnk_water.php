@@ -5,7 +5,7 @@ $south = $_REQUEST['south'];
 $west  = $_REQUEST['west'];
 $east  = $_REQUEST['east'];
 header('Content-type: application/json');
-$conn = pg_pconnect("host=192.168.24.15 dbname=research user=postgres password=postgres");
+$conn = pg_pconnect("host=titania dbname=research user=postgres password=postgres");
 if (!$conn) {
   echo "A connection error occurred.\n";
   exit;
@@ -41,10 +41,10 @@ pointsheight As (
 	SELECT 
 		 
 		ST_Force3D(geom) geom,
-		COALESCE(PC_PatchMin(pa, 'z'),1) as zval
+		COALESCE(PC_PatchMin(PC_FilterEquals(pa,'classification',9), 'z'),1) as zval
 		, path, points.id
 	FROM points
-	LEFT JOIN ahn_pointcloud.ahn2terrain b ON (ST_Intersects(geom, Geometry(b.pa)))
+	LEFT JOIN ahn3_pointcloud.vw_ahn3 b ON (ST_Intersects(geom, Geometry(b.pa)))
 	ORDER BY id, path
 ),
 

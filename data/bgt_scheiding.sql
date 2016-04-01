@@ -1,21 +1,6 @@
-<?php
-
-$north = $_REQUEST['north'];
-$south = $_REQUEST['south'];
-$west  = $_REQUEST['west'];
-$east  = $_REQUEST['east'];
-
-header('Content-type: application/json');
-//$conn = pg_pconnect("host=192.168.26.76 dbname=research user=postgres password=postgres");
-$conn = pg_pconnect("host=titania dbname=research user=postgres password=postgres");
-if (!$conn) {
-  echo "A connection error occurred.\n";
-  exit;
-}
-$query = "
 WITH 
 bounds AS (
-	SELECT ST_MakeEnvelope($west, $south, $east, $north, 28992) geom
+	SELECT ST_MakeEnvelope(_west, _south, _east, _north, 28992) geom
 ),
 pointcloud_building AS (
 	SELECT PC_FilterEquals(pa,'classification',1) pa --unclassified  
@@ -25,7 +10,7 @@ pointcloud_building AS (
 footprints AS (
 	SELECT ST_Force3D(a.geom) geom,
 	a.ogc_fid id
-	FROM bgt.polygons a, bounds b
+	FROM bgt_import.polygons a, bounds b
 	WHERE 1 = 1
 	AND type = 'muur'
 	AND ST_Intersects(a.geom, b.geom)
@@ -69,23 +54,8 @@ stats_fast AS (
 	GROUP BY footprints.id, footprint
 ),
 polygons AS (
-	--SELECT id, ST_Extrude((ST_Translate(ST_ExteriorRing(footprint),0,0, min)), 0,0,max-min) geom FROM stats
-	SELECT ST_Tesselate(ST_Translate(footprint,0,0, min + 20)) geom FROM stats_fast
+	SELECT id, ST_Extrude(ST_Translate(footprint,0,0, min), 0,0,max-min) geom FROM stats
+	--SELECT id, ST_Tesselate(ST_Translate(footprint,0,0, min + 20)) geom FROM stats_fast
 )
 SELECT id,'building' as type, '0.66 0.37 0.13' as color, ST_AsX3D(polygons.geom) geom
 FROM polygons
-";
-
-$result = pg_query($conn, $query);
-if (!$result) {
-  echo "An error occurred.\n";
-  exit;
-}
-$res_string = "id;type;color;geom;label;\n";
-while ($row = pg_fetch_row($result)) {
-	$res_string = $res_string . implode(';',$row) . "\n";
-}
-ob_start("ob_gzhandler");
-echo $res_string;
-ob_end_flush();
-?>
