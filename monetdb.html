@@ -14,11 +14,6 @@
  
  <script src="http://cdnjs.cloudflare.com/ajax/libs/proj4js/2.2.1/proj4.js"></script>
  
- <!-- add some cow... -->
- <script src="../cow/lib/underscore/underscore-min.js"></script>
- <script src="../cow/dist/cow.min.js"></script>
- <script src="../cow/test/cow.data.js"></script>
- 
 <style>
 	html, body {
 	    width: 100%;
@@ -26,20 +21,6 @@
 	    margin: 0px;
 	    padding: 0px;
 	    color: white;
-	    font-size: 16pt;
-	    font-family: Arial;
-	}
-	select {
-		font-size: 16pt;
-	    font-family: Arial;
-	}
-	button {
-		font-size: 16pt;
-	    font-family: Arial;
-	}
-	input {
-		font-size: 16pt;
-	    font-family: Arial;
 	}
 	
 	.popup {
@@ -70,9 +51,7 @@
 		position: absolute;
 		color: white;
 		bottom: 0px;
-	} 
-	
-	
+	}
 	
 </style>
 
@@ -82,8 +61,9 @@
 var themeconfig = {
 	gray: {
 	 materials: {
-		building: {diffuseColor: 'white',transparency: '0'},
-		water: {specularColor: '0.823529 0.705882 0.54902', diffuseColor: '0.9 1 1', shininess: '1'},
+	 	land: {diffuseColor: 'orange',transparency: '0'},
+		pand: {diffuseColor: 'orange',transparency: '0'},
+		waterloop: {specularColor: '0.823529 0.705882 0.54902', diffuseColor: '0.9 1 1', shininess: '1'},
 		voetpad: {diffuseColor: 'gray'},
 		rijbaan_lokale_weg: {diffuseColor: 'gray'},
 		open_verharding:{diffuseColor: 'gray'},
@@ -96,13 +76,14 @@ var themeconfig = {
 		light: {emissiveColor: 'yellow', transparency: 0},
 		post: {diffuseColor: 'gray'},
 		roof: {diffuseColor: 'orange'},
-		scene: {skyColor: '0.4 0.6 0.8'},
+		scene: {skyColor: '0.1 0.1 0.1'}
 	 }
 	},
 	light: {
 	  materials: {
-		building: {diffuseColor: 'white'},
-		water: {specularColor: '0.823529 0.705882 0.54902', diffuseColor: '0.9 1 1', shininess: '1'},
+	  land: {emissiveColor: '0.9 0.9 0.9',diffuseColor: 'white'},
+		pand: {emissiveColor: '0.9 0.9 0.9',diffuseColor: 'white'},
+		waterloop: {diffuseColor: '0.7 0.7 1.0'},
 		light: {emissiveColor: 'black', transparency: 1},
 		scene: {skyColor: '0.4 0.6 0.8'},
 		erf:{diffuseColor: 'white'},
@@ -133,41 +114,10 @@ var themeconfig = {
 </head>
 <body>
 	<div id="webgl1">
-	    <div class="title">BGT 3D</div>
+	    <div class="title">MonetDB 3D</div>
 	    <div id="viewMat"></div>
 	</div>
-	<div id="debug">
-		<div>
-		Location: <input id='location'></input>
-		</div>
-		<div>
-		Theme: <br>
-		<select id='themeselect'>
-			<option value='gray'>Gray</option>
-			<option value='light'>Light</option>
-			<option value='functional'>Functional</option>
-		</select>
-		</div>
-		<div>
-		Time: <br>
-		<select id='timeselect'>
-			<option value='-1 0 -0.2'>Morning</option>
-			<option value='0.2 0.2 -1'>Noon</option>
-			<option value='1 0 -0.2'>Afternoon</option>
-		</select>
-		</div>
-		<div>
-		Headlight: <br>
-		<button id='headlight'></button>
-		</div>
-		<div>
-		Viewpoint:<br>
-			<button id='default'>View 0</button><br>
-			<button id='view1'>View 1</button><br>
-			<button id='view2'>View 2</button><br>
-			<button id='view3'>View 3</button>
-		</div>
-	</div>
+	<div id="debug"></div>
 
 
 <script src="x3d_map.js"></script>
@@ -213,7 +163,9 @@ document.onload= function()
 var tilesize = 100;
 /* Some UI changeable settings **/
 var div = d3.select('#debug');
-var input = d3.select('#location');
+div.append('div').html('Location');
+var input = div.append('input');
+
 input.on('blur', function(d){
     var url = '/service/geosearch/free?q='+this.value+'&facet=true&facet.field=type&wt=json&_=1413275899673';
     d3.json(url, function(z){
@@ -250,7 +202,11 @@ input.on('blur', function(d){
 
 
 
-var select = d3.select('#themeselect');
+div.append('div').html('Theme');
+var select =  div.append('select');
+for (var key in themeconfig){
+	select.append('option').attr('value',key).html(key);
+}
 select.on('change', function(){
 	for (var key in themeconfig[this.value]['materials']){
 		var material = d3.selectAll('.' + key).select('.material');
@@ -261,13 +217,18 @@ select.on('change', function(){
 	}
 });
 
-
-var select = d3.select('#timeselect');
+div.append('div').html('TimeOfDay ');
+var select =  div.append('select');
+select.append('option').attr('value','0 0 1').html('Midnight');
+select.append('option').attr('value','-1 0 -0.2').html('Dusk');
+select.append('option').attr('value','0.2 0.2 -1').attr('selected',true).html('Midday');
+select.append('option').attr('value','1 0 -0.2').html('Dawn');
 select.on('change', function(){
 	var direction = this.value;
 	light1.transition().duration('2000').attr('direction',direction);
 });
-d3.select('#headlight').on('click', function(){
+div.append('div').html('Headlight');
+div.append('button').on('click', function(){
 		if (d3.select('#navInfo').attr('headlight') == 'true'){
 			d3.select(this).html('OFF');
 			d3.select('#navInfo').attr('headlight','false');
@@ -278,59 +239,32 @@ d3.select('#headlight').on('click', function(){
 		}
 }).html('OFF');
 
-d3.select('#default').on('click', function(){
+div.append('div').html('Viewpoint ');
+div.append('button').on('click', function(){
     document.getElementById('viewpointwebgl1').setAttribute('set_bind','true');
-});
-d3.select('#view1').on('click', function(){
+}).html('Default');
+div.append('button').on('click', function(){
 	document.getElementById('leiden1').setAttribute('set_bind','true');
-});
-d3.select('#view2').on('click', function(){
+}).html('View1');
+div.append('button').on('click', function(){
     document.getElementById('leiden2').setAttribute('set_bind','true');
-});
-d3.select('#view3').on('click', function(){
+}).html('View2');
+div.append('button').on('click', function(){
     document.getElementById('leiden3').setAttribute('set_bind','true');
-});
+}).html('View3');
 
 /** End of UI settings **/
 var loadlist = [
-    
-    
-    /*POINTS*/
-    //{name: 'bridge',reload: true, url: './data/pc_bgt_bridge_service.php'}
-	//,{name: 'groundpoints',	reload: true, url: '/service/bgt3d'}
-	,{name: 'treepoints', reload: true, url: '/service/bgt3d'}
-	//,{name: 'object',		reload: true, url: './data/bgt_objectpoints.php'}
-	//,{name: 'building',		reload: true, url: './data/bgt_buildingpoints.php'}
-	//,{name: 'ahn2objects',		reload: true, url: './data/bgt_ahn2objectpoints.php'}
-
-	/*VECTOR*/
-	//{name: 'nwb',reload: true, url: './data/nwb_wegvak.php'}
-	//,{name: 'roofskeleton', reload: true, url: '/service/bgt3d'} //'./data/bgt_terrain.php'}
-	,{name: 'terrain', reload: true, url: '/service/bgt3d'}
-	,{name: 'roads', reload: true, url: '/service/bgt3d'}
-	,{name: 'buildings', reload: false, url: '/service/bgt3d'} 
-	//,{name: 'roof', reload: false, url: './data/bgt_roof.php'}
-	,{name: 'scheiding',reload: false, url: '/service/bgt3d'}
-	,{name: 'bridge',	reload: true, url: '/service/bgt3d'}
-	,{name: 'bridgepilons',	reload: false, url: '/service/bgt3d'}
-	,{name: 'kade', 	reload: false, url: '/service/bgt3d'}
-	,{name: 'steiger', 	reload: false, url: '/service/bgt3d'}
-	//,{name: 'lights', 	reload: true, url: '/service/bgt3d'}
-	,{name: 'water', 	reload: true, url: '/service/bgt3d'}
+	{name: 'terrain', reload: true, url: '/service/monetdb_3d'},
+	{name: 'treepoints', reload: true, url: '/service/monetdb_3d'}
 ]; 
 
 render(wxs3, 'webgl1', {
 	loadlist: loadlist,
-	//bbox: '122110,486549, 122498,486790' //Hortus Amsterdam
-	//bbox: '119966,485839, 120455,486143' //Vondelpark tunnel
-	bbox: '122640,487020, 122888,487174' //Nemo
-	//bbox: '121980,486706, 122228,486860' //Mr visserplein
-	//bbox: '93346,465109, 93742,465355' //Spoortunnel leiden
-	//bbox: '122996,486846, 123240,486998' //woonboot Anne
 	//bbox:'188045,428786, 188411,429044', //klein stukje nijmegen (Valkhof)
 	//bbox: '154459,463904,154947,464231' //Amersfoort
 	//bbox: '154678.0,463991.2,154783.9,464063.7' //Amersfoort_small
-	//bbox: '93616,463691,93887,463981' //Leiden
+	bbox: '93616,463691,93887,463981' //Leiden
 	//bbox: '93468.9,462610.7,93667.9,462735.3' //Leiden prof wijk
 	//bbox: '78657,455471,78828,455679' //Scheveningen
 	//bbox: '148945,411439, 148975,411471' //Den Bosch

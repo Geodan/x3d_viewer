@@ -1,50 +1,41 @@
-<?php
-
-$north = $_REQUEST['north'];
-$south = $_REQUEST['south'];
-$west  = $_REQUEST['west'];
-$east  = $_REQUEST['east'];
-
-$width = $east - $west;
-$height = $north - $south;
-$area = $width * $height;
-
-$diagonal = sqrt(pow($width,2) + pow($height,2));
-$zoom = 100 / $diagonal;
-//$zoom  = $_REQUEST['zoom'] ?: 0.005;
-
-$segmentlength = $width / 10;
-
-header('Content-type: application/json');
-$conn = pg_pconnect("host=titania dbname=research user=postgres password=postgres");
-if (!$conn) {
-  echo "A connection error occurred.\n";
-  exit;
-}
-$query = "
-WITH
+WITH 
 bounds AS (
-	SELECT ST_Segmentize(ST_MakeEnvelope($west, $south, $east, $north, 28992),$segmentlength) geom
+	SELECT ST_Segmentize(ST_MakeEnvelope(_west, _south, _east, _north, 28992),_segmentlength) geom
 ),
 pointcloud AS (
-	SELECT PC_FilterEquals(pa,'classification',26) pa --ground points 
+	SELECT PC_FilterEquals(pa,'classification',26) pa --bridge points 
 	FROM ahn3_pointcloud.vw_ahn3, bounds 
 	WHERE ST_DWithin(geom, Geometry(pa),10) --patches should be INSIDE bounds
 ),
 --TODO: introduce extra vertices where brdge pilon intersects
 footprints AS (
-	SELECT nextval('counter') id, ogc_fid fid, class as type,
-	  (ST_Dump(
-		ST_Intersection(ST_SetSrid(ST_CurveToLine(a.wkb_geometry),28992), b.geom)
-	  )).geom
-	FROM bgt_import.bridgeconstructionelement a, bounds b
+	SELECT nextval('counter') id, ogc_fid fid, 'bridge'::text AS class, 'dek'::text AS type,
+	  ST_CurveToLine(a.wkb_geometry) geom
+	FROM bgt_import2.overbruggingsdeel_2dactueel a, bounds b
 	WHERE 1 = 1
-	AND class = 'dek'
+	AND typeoverbruggingsdeel = 'dek'
 	AND ST_Intersects(ST_SetSrid(ST_CurveToLine(a.wkb_geometry),28992), b.geom)
-	--AND ST_Intersects(ST_Centroid(ST_SetSrid(ST_CurveToLine(a.wkb_geometry),28992)), b.geom)
+	AND ST_Intersects(ST_Centroid(ST_SetSrid(ST_CurveToLine(a.wkb_geometry),28992)), b.geom)
+)
+,roads AS (
+	SELECT nextval('counter') id,a.ogc_fid, 'bridge'::text AS class, a.bgt_functie as type, 
+		a.wkb_geometry geom
+	FROM bgt_import2.wegdeel_2d a
+	LEFT JOIN bgt_import2.overbruggingsdeel_2d b
+	ON (St_Intersects((a.wkb_geometry), (b.wkb_geometry)) AND St_Contains(ST_buffer((b.wkb_geometry),1), (a.wkb_geometry)))
+	,bounds c
+	WHERE a.relatieveHoogteligging > -1
+	AND ST_CurveToLine(b.wkb_geometry) Is Not Null
+	AND a.eindregistratie Is Null
+	AND b.eindregistratie Is Null
+	AND ST_Intersects(c.geom, a.wkb_geometry)
+	AND ST_Intersects(ST_Centroid(ST_SetSrid(ST_CurveToLine(a.wkb_geometry),28992)), c.geom)
 )
 ,polygons AS (
 	SELECT * FROM footprints
+	WHERE ST_GeometryType(geom) = 'ST_Polygon'
+	UNION ALL
+	SELECT * FROM roads
 	WHERE ST_GeometryType(geom) = 'ST_Polygon'
 )
 ,rings AS (
@@ -141,7 +132,7 @@ innerpoints AS (
 	ON a.id = b.id 
 	AND ST_Intersects(a.geom, b.geom)
 	AND Not ST_DWithin(a.geom, ST_ExteriorRing(b.geom),1)
-	WHERE random() < (0.1 * $zoom)
+	WHERE random() < (0.1 * _zoom)
 	AND (b.type != 'road') 
 )
 ,basepoints AS (
@@ -162,7 +153,11 @@ innerpoints AS (
 	GROUP BY id
 )
 ,assign_triags AS (
-	SELECT 	a.*, b.type
+	SELECT 	a.id, 
+		CASE 
+			WHEN b.type != 'dek' THEN ST_Translate(a.geom, 0,0,1) 
+			ELSE a.geom
+		END as geom, b.type
 	FROM triangles a
 	INNER JOIN polygons b
 	ON ST_Contains(b.geom, a.geom)
@@ -170,27 +165,7 @@ innerpoints AS (
 	WHERE ST_Intersects(ST_Centroid(b.geom), c.geom)
 	AND a.id = b.id
 )
-
-SELECT $south::text || $west::text || p.id, p.type as type,
+SELECT _south::text || _west::text || p.id AS id, p.type as type,
 	ST_AsX3D(ST_Collect(p.geom),3) geom
 FROM assign_triags p
-LEFT JOIN bgt.vw_style s ON (p.type = s.type) 
 GROUP BY p.id, p.type
-";
-
-
-$result = pg_query($conn, $query);
-if (!$result) {
-  echo "An error occurred.\n";
-  exit;
-}
-
-$res_string = "id;type;geom;\n";
-while ($row = pg_fetch_row($result)) {
-	$res_string = $res_string . implode(';',$row) . "\n";
-}
-ob_start("ob_gzhandler");
-echo $res_string;
-ob_end_flush();
-
-?>

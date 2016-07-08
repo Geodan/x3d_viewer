@@ -7,10 +7,18 @@ var fs = require( 'fs' );
 var pg = require( 'pg' ); 
 var sets = {
 	kade: { file: 'bgt_kade.sql',sql: ''},
+	steiger: { file: 'bgt_steiger.sql',sql: ''},
+	water: { file: 'bgt_water.sql',sql: ''},
+	bridge: { file: 'bgt_bridge.sql',sql: ''},
+	bridgepilons: { file: 'bgt_bridgepilons.sql',sql: ''},
 	scheiding: { file : 'bgt_scheiding.sql',sql: ''},
 	terrain: { file : 'bgt_terrain.sql',sql: ''},
+	roads: { file : 'bgt_road.sql',sql: ''},
 	buildings: { file : 'bgt_buildings.sql', sql : '' },
 	roofskeleton: { file : 'bgt_roofskeleton.sql', sql : '' },
+	treepoints: { file : 'bgt_treepoints.sql', sql : '' },
+	groundpoints: { file: 'bgt_groundpoints.sql', sql: '' },
+	lights: { file : 'bgt_lights.sql', sql : '' }
 }; 
 for( var s in sets ) { 
 	sets [ s ].sql = fs.readFileSync( sets [ s ].file ).toString( ); 
@@ -25,14 +33,14 @@ app.get( '/bgt3d', function( req, res ) {
 		var set = req.query [ 'set' ] || 'buildings';
 		var client = new pg.Client( { 
 				user : 'geodan', 
-				password : 'password', 
-				database : 'dev', 
-				host : 'titania', 
+				password : 'Gehijm', 
+				database : 'research', 
+				host : 'metis', 
 				port : 5432 
 		} ); 
 		client.connect( function( err ) { 
-				if( err ) { 
-					res.send( 'could not connect to postgres' ); 
+				if( err ) {
+					res.status('could not connect to postgres').send(err)
 				} 
 				console.log('Set: ',set);
 				var querystring = sets [ set ].sql; 

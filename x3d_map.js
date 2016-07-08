@@ -410,14 +410,15 @@ var render = function(ns, divid, config){
                     
                     if (!dragging){
                     	d3.select('#' + divid).append('div').classed('popup',true)
-                            .style('left',d3.event.layerX + 'px')
-                            .style('top', d3.event.layerY + -50 + 'px')
+                            .style('left',d3.event.layerX/2 + 'px')
+                            .style('top', d3.event.layerY/2 + 'px')
                             .style('position', 'absolute')
                             .html(html);
-                    
-                        var e = this.getElementsByTagName('material')[0];
-                        d.oldcolor = e.diffuseColor;
-                        e.diffuseColor = 'red';
+                        d.oldcolor = d3.select(this).select('.material').attr('emissiveColor');
+                        d3.select(this).select('.material').transition().attr('emissiveColor', 'red');
+                        //var e = this.getElementsByTagName('material')[0];
+                        //d.oldcolor = e.diffuseColor;
+                        //e.diffuseColor = 'red';
                     }
                 })
                 .on('mousedown', function(d){
@@ -429,10 +430,11 @@ var render = function(ns, divid, config){
                 })
                 .on('mouseout', function(d){
                     d3.selectAll('.popup').remove();
-                    var e = this.getElementsByTagName('material')[0];
-                    e.diffuseColor = d.oldcolor;
+                    //var e = this.getElementsByTagName('material')[0];
+                    //e.diffuseColor = d.oldcolor;
+                    d3.select(this).select('.material').transition().attr('emissiveColor', d.oldcolor);
                     //d3.select(this).select('Material').attr('diffuseColor', 'red');
-                })
+                })                 
                 .html(function(d){
                     if (d.geom && d.geom.indexOf('IndexedFaceSet') >  0){
                         d.geom = d.geom.replace('IndexedFaceSet', 'IndexedFaceSet creaseAngle=\'3.14\' solid=\'false\' ');
