@@ -3,20 +3,28 @@ bounds AS (
 	SELECT ST_MakeEnvelope(_west, _south, _east, _north, 28992) geom
 ),
 pointcloud_building AS (
-	SELECT PC_FilterEquals(pa,'classification',1) pa --unclassified  
+	SELECT PC_FilterGreaterThan(
+			PC_FilterEquals(
+				PC_FilterEquals(pa,'classification',1),
+			'NumberOfReturns',1),
+		'Intensity',150) pa  
 	FROM ahn3_pointcloud.vw_ahn3, bounds 
 	WHERE ST_DWithin(geom, Geometry(pa),10) --patches should be INSIDE bounds
 ),
 footprints AS (
-	SELECT ST_Force3D(a.geom) geom,
-	a.ogc_fid id
-	FROM bgt_import.polygons a, bounds b
-	WHERE 1 = 1
-	AND type = 'muur'
-	AND ST_Intersects(a.geom, b.geom)
-	AND ST_Intersects(ST_Centroid(a.geom), b.geom)
-),
-papoints AS ( --get points from intersecting patches
+	SELECT a.ogc_fid id, a.ogc_fid, 'border' AS class, a.bgt_type as type, 
+	ST_Force3D(ST_CurveToLine(a.wkb_geometry)) geom
+	FROM bgt_import2.scheiding_2dactueelbestaand a
+	LEFT JOIN bgt_import2.overbruggingsdeel_2dactueelbestaand b 
+	ON St_Intersects((a.wkb_geometry), (b.wkb_geometry)) AND St_Contains(ST_buffer((b.wkb_geometry),1), (a.wkb_geometry))
+	,bounds c
+	WHERE a.relatieveHoogteligging > -1
+	AND a.bgt_type = 'muur'
+	AND (b.wkb_geometry) Is Null
+	AND ST_Intersects(a.wkb_geometry, c.geom)
+	AND ST_Intersects(ST_Centroid(a.wkb_geometry), c.geom)
+)
+,papoints AS ( --get points from intersecting patches
 	SELECT 
 		a.id,
 		PC_Explode(b.pa) pt,

@@ -9,18 +9,16 @@ pointcloud AS (
 	WHERE ST_DWithin(geom, Geometry(pa),10) --patches should be INSIDE bounds
 ),
 footprints AS (
-	SELECT ST_Force3D(ST_GeometryN(ST_SimplifyPreserveTopology(geometrie2dgrondvlak,0.4),1)) geom,
+	SELECT ST_Force3D(ST_GeometryN(ST_SimplifyPreserveTopology(wkb_geometry,0.4),1)) geom,
 	a.ogc_fid id,
 	0 bouwjaar
-	FROM bgt_import.buildingpart a, bounds b
+	FROM bgt_import2.pand_2dactueelbestaand a, bounds b
 	WHERE 1 = 1
 	--AND a.ogc_fid = 688393 --DEBUG
-	--AND bgt_status = 'bestaand'
-	AND ST_Area(a.geometrie2dgrondvlak) > 30
-	AND ST_Intersects(a.geometrie2dgrondvlak, b.geom)
-	AND ST_Intersects(ST_Centroid(a.geometrie2dgrondvlak), b.geom)
-	AND ST_IsValid(a.geometrie2dgrondvlak)
-    --AND ST_GeometryType(a.geometrie2dgrondvlak) = 'ST_MultiPolygon'
+	AND ST_Area(a.wkb_geometry) > 30
+	AND ST_Intersects(a.wkb_geometry, b.geom)
+	AND ST_Intersects(ST_Centroid(a.wkb_geometry), b.geom)
+	AND ST_IsValid(a.wkb_geometry)
 ),
 papoints AS ( --get points from intersecting patches
 	SELECT 
@@ -32,8 +30,8 @@ papoints AS ( --get points from intersecting patches
 ),
 stats_fast AS (
 	SELECT 
-		PC_PatchAvg(PC_Union(pa),'z') max,
-		PC_PatchMin(PC_Union(pa),'z') min,
+		PC_PatchAvg(PC_Union(pa),'z') AS max,
+		PC_PatchMin(PC_Union(pa),'z') AS min,
 		footprints.id,
 		bouwjaar,
 		geom footprint
@@ -47,8 +45,8 @@ polygons AS (
 		id, bouwjaar,
 		(
 			ST_Extrude(
-				ST_Translate(footprint,0,0, min)
-			, 0,0,max-min -2)
+				ST_Translate(footprint,0,0, min - 1) --pull 1 meter down
+			, 0,0,max-min -1)
 		) 
 		geom FROM stats_fast
 	--SELECT ST_Tesselate(ST_Translate(footprint,0,0, min + 20)) geom FROM stats_fast
