@@ -167,7 +167,7 @@ var themeconfig = {
 	</div>
 
 
-<script src="x3d_map.js"></script>
+<script src="./src/x3d_map.js"></script>
 
 <script type="">
 
@@ -288,32 +288,34 @@ d3.select('#view3').on('click', function(){
     document.getElementById('leiden3').setAttribute('set_bind','true');
 });
 
+
+var servicepath = 'http://research.geodan.nl/service/bgt3d';
 /** End of UI settings **/
 var loadlist = [
     
     
     /*POINTS*/
     //{name: 'bridge',reload: true, url: './data/pc_bgt_bridge_service.php'}
-	//,{name: 'groundpoints',	reload: true, url: '/service/bgt3d'}
-	,{name: 'treepoints', reload: true, url: '/service/bgt3d'}
+	//,{name: 'groundpoints',	reload: true, url: servicepath}
+	,{name: 'treepoints', reload: true, url: servicepath}
 	//,{name: 'object',		reload: true, url: './data/bgt_objectpoints.php'}
 	//,{name: 'building',		reload: true, url: './data/bgt_buildingpoints.php'}
 	//,{name: 'ahn2objects',		reload: true, url: './data/bgt_ahn2objectpoints.php'}
 
 	/*VECTOR*/
 	//{name: 'nwb',reload: true, url: './data/nwb_wegvak.php'}
-	//,{name: 'roofskeleton', reload: true, url: '/service/bgt3d'} //'./data/bgt_terrain.php'}
-	,{name: 'terrain', reload: true, url: '/service/bgt3d'}
-	,{name: 'roads', reload: true, url: '/service/bgt3d'}
-	,{name: 'buildings', reload: false, url: '/service/bgt3d'} 
+	//,{name: 'roofskeleton', reload: true, url: servicepath} //'./data/bgt_terrain.php'}
+	,{name: 'terrain', reload: true, url: servicepath}
+	,{name: 'roads', reload: true, url: servicepath}
+	,{name: 'buildings', reload: false, url: servicepath} 
 	//,{name: 'roof', reload: false, url: './data/bgt_roof.php'}
-	,{name: 'scheiding',reload: false, url: '/service/bgt3d'}
-	,{name: 'bridge',	reload: true, url: '/service/bgt3d'}
-	,{name: 'bridgepilons',	reload: false, url: '/service/bgt3d'}
-	,{name: 'kade', 	reload: false, url: '/service/bgt3d'}
-	,{name: 'steiger', 	reload: false, url: '/service/bgt3d'}
-	//,{name: 'lights', 	reload: true, url: '/service/bgt3d'}
-	,{name: 'water', 	reload: true, url: '/service/bgt3d'}
+	,{name: 'scheiding',reload: false, url: servicepath}
+	,{name: 'bridge',	reload: true, url: servicepath}
+	,{name: 'bridgepilons',	reload: false, url: servicepath}
+	,{name: 'kade', 	reload: false, url: servicepath}
+	,{name: 'steiger', 	reload: false, url: servicepath}
+	//,{name: 'lights', 	reload: true, url: servicepath}
+	,{name: 'water', 	reload: true, url: servicepath}
 ]; 
 
 render(wxs3, 'webgl1', {
