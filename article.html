@@ -1,0 +1,75 @@
+<html>
+
+<head>
+
+<style>
+body {
+    max-width: 600px;
+}
+</style>
+</head>
+<body>
+<h2>
+From pointcloud to X3D model
+</h2>
+<p>
+Earlier in 2014 we <a href="http://www.geodan.nl/loading-ahn2-into-postgresql-pointcloud/">blogged</a> about putting our national pointcloud data into postgis with the help of the new <a href="https://github.com/pramsey/pointcloud">pgpointcloud</a> library from Paul and some terabytes of harddisk. We ended up with a whopping 160 billion indexed (!) points in the database that were ready to query.
+</p>
+
+<p>
+Since then we've been experimenting with complex queries that combine national vector data (roads etc) with the points to produce a 3D model of the country. In this blog I will explain the technical process and difficulties we encoutered on the way. But to give you an idea, here's an example of what we were able to do with it: [LINK TO X3D model]
+</p>
+
+<h3>Aim</h3>
+<p>
+Although raw pointcloud data can give <a href="http://potree.org/demo/potree_2014.05.23/examples/pompei.html">impressive visualisations </a> it is not easily possible to identify objects within a pointcloud. For the human eye it is obvious what we're looking at but for the computer it is still a bunch of points and nothing more than that. One way of solving that would be with automated feature extraction, for instance with the <a href="http://www.pointclouds.org/">pointcloud library</a> but that takes a lot of computing power and involves some guess work. 
+Since we have <a href="https://www.pdok.nl/nl/producten/pdok-downloads/basis-registratie-topografie/topnl/topnl-actueel/top10nl">national vectordata</a> of all land coverage (roads, parks, buildings, etc) our aim was to enhance this two-dimensional set with pointcloud data and create a three dimensional vector set. In postgis ofcourse and with the help of SFCGAL.
+</p>
+
+<h3>Querying pointclouds</h3>
+<p>
+The nature of postgis (or any spatially indexed database) allows us to easily create small subsets of data to work on and hence to create queries that can do various kinds of processing very quickly on a small area of interesest. With the help of a very useful <a href="http://workshops.boundlessgeo.com/tutorial-lidar/">Boundless tutorial</a> we were quickly up to speed with querying pointclouds.
+</p>
+<p>
+<h4>Terrain model</h4>
+<p>
+The terrain model turned out to be the most work, due to the fact that we had to introduce new points along the geometries and on the boundaries of the requested area (tile).
+A terrain model is typically defined by a TIN and is 2.5D.  It can go up and down but there will never be geometries vertically stacked. Therefore it is sufficient to triangulate the points and export them as a TIN. The procedure is as follows:
+1. find points within geometries
+<pre>
+	SELECT id, PC_Explode(pa) pt FROM pointcloud
+</pre>
+2. Assign height to vertices
+3. Triangulate points
+4. Cut off triangles outside geometry
+
+The trunk version of SFCGAL already ships with a 
+
+</p>
+
+<h4>Buildings</h4>
+
+1. Find lowest points
+2. Find average points within roof geometry
+
+<h4>Water</h4>
+1. Find lowest points
+Still difficult
+
+
+<h3>Exporting to X3D</h3>
+
+The last step is the easiest. Postgis has an ST_AsX3D() output that can be natively read by the x3dom javascript library. The only thing that had to be done is to add color, light and a camera. 
+
+<h3>Future work and conclusions</h3>
+
+
+<h3>References:</h3>
+<ul>
+<li>https://github.com/pramsey/pointcloud</li>
+<li>http://potree.org</li>
+<li>http://workshops.boundlessgeo.com/tutorial-lidar/</li>
+<li>https://www.pdok.nl/nl/producten/pdok-downloads/basis-registratie-topografie/topnl/topnl-actueel/top10nl</li>
+</ul>
+</body>
+</html>
