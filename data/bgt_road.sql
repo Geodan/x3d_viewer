@@ -54,6 +54,7 @@ polygons AS (
 	FROM polygons a 
 	LEFT JOIN pointcloud_ground b
 	ON ST_Intersects(geom,Geometry(b.pa))
+	WHERE ST_GeometryType(geom) = 'ST_Polygon'
 	GROUP BY id, fid, type, class, geom
 )
 ,basepoints AS (
