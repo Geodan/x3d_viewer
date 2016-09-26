@@ -21,6 +21,10 @@
   ],
   "dependencies": {
     "d3": "~3.5.6",
-    "x3dom": "^1.7.1"
+    "x3dom": "^1.7.1",
+    "polymer": "Polymer#^1.6.1",
+    "paper-elements": "^1.0.7",
+    "iron-elements": "^1.0.10",
+    "gm-elements": "GeodanElements/gm-elements#^0.0.4"
   }
 }

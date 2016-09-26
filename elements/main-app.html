@@ -1,0 +1,353 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tab.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-drawer-panel/paper-drawer-panel.html">
+<link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+
+<link rel="import" href="../bower_components/gm-elements/gm-geosearch.html">
+
+<link rel="import" href="x3d-viewer.html">
+
+
+<dom-module id="main-app">
+<style include="iron-flex iron-flex-alignment"></style> 
+<style>
+ paper-item {
+ 	 cursor: pointer;
+ }
+ 
+ </style>
+ <template>
+ 	<paper-drawer-panel>
+		<div drawer>
+			<paper-toolbar class="medium-tall">
+			<div class="title">X3D viewer</div>
+			<paper-tabs  class="bottom" selected={{tabselected}}>
+				<paper-tab>Layers</paper-tab>
+				<paper-tab>Scene</paper-tab>
+				<paper-tab>Demos</paper-tab>
+			</paper-tabs>
+			</paper-toolbar>
+			
+			<iron-pages selected=[[tabselected]]>
+				<div>
+					<template is='dom-repeat' items=[[layers]] observe="loading" filter="_isnothidden">
+						<paper-item>
+							<paper-checkbox   on-change='layertoggle' checked=[[item.active]]>
+									</paper-checkbox>
+							<paper-item-body>
+								<div class="layout horizontal">
+									<span class='flex'>[[item.displayName]]</span>
+									<paper-spinner active=[[item.loading]]></paper-spinner>
+								</div>
+							</paper-item-body>
+							
+						</paper-item>
+					</template>
+				</div>
+				<div>
+					
+						<paper-listbox selected={{viewselected}} attr-for-selected="name" class="dropdown-content">
+							<paper-item name='viewpoint'>Top view</paper-item>
+							<paper-item name='leiden1'>View 1</paper-item>
+							<paper-item name='leiden2'>View 2</paper-item>
+							<paper-item name='leiden3'>View 3</paper-item>
+						</paper-listbox>
+					
+					<paper-dropdown-menu label="Time of day">
+						<paper-listbox selected={{hourselected}} attr-for-selected="value" class="dropdown-content">
+							<paper-item value='8'>Morning</paper-item>
+							<paper-item value='12'>Noon</paper-item>
+							<paper-item value='17'>Afternoon</paper-item>
+							<paper-item value='24'>Night</paper-item>
+						</paper-listbox>
+					</paper-dropdown-menu>
+					<paper-dropdown-menu label="Theme">
+						<paper-listbox selected={{themeselected}} attr-for-selected="name" class="dropdown-content">
+							<paper-item name='gray'>Gray</paper-item>
+							<paper-item name='light'>Light</paper-item>
+							<paper-item name='functional'>Functional</paper-item>
+						</paper-listbox>
+					</paper-dropdown-menu>
+
+					<paper-item><paper-toggle-button active checked={{headlight}}>Headlight</paper-toggle-button></paper-item>
+					<gm-geosearch id="geosearch"></gm-geosearch>
+					<paper-dropdown-menu label="Goto">
+						<paper-listbox selected={{locationselected}} attr-for-selected="value" class="dropdown-content">
+							<template is='dom-repeat' items=[[locations]]>
+								<paper-item value=[[item.bbox]]>[[item.name]]</paper-item>
+							</template>
+						</paper-listbox>
+					</paper-dropdown-menu>
+				</div>
+				<div>
+					<paper-item>1. Tree growth</paper-item>
+					<!-- Vershil in grootte van bomen -->
+					<paper-item>2. Cluster trees</paper-item>
+					<!-- Individuele bomen vinden obv. cluster -->
+					<paper-item>3. Change detection</paper-item>
+					<!-- Zichtbaar maken verschil in parkeer richting/dakopbouw in Scheveningen-->
+				</div>
+			</iron-pages>
+			
+		</div>
+		<div main><x3d-viewer 
+			 map={{map}} 
+			 headlight=[[headlight]]
+			 hour=[[hourselected]]
+			 themeconfig=[[themeconfig]]>
+			<template is='dom-repeat' items=[[layers]]>
+				<transform id=[[item.name]]></transform>
+				
+				<x3d-layer 
+					active=[[item.active]] 
+					map=[[map]]
+					on-loading='_loading'
+					on-loaded='_loaded'
+					url=[[item.url]] 
+					name=[[item.name]]
+					themeconfig=[[themeconfig]]
+					config=[[item.config]]
+					></x3d-layer>
+					
+			</template>
+		</x3d-viewer></div>
+	</paper-drawer-panel>
+ 	
+ </template>
+ </dom-module>
+
+<script>
+
+Polymer({
+	is: 'main-app',
+	properties: {
+		tabselected: {
+			type: Number,
+			value: 0
+		},
+        viewselected: {
+        	type: Number,
+        	value: 'viewpoint',
+        	observer: '_selectedviewchanged'
+        },
+        locationselected: {
+        	type: String,
+        	observer: '_selectedlocationchanged'
+        },
+		selectedLayers: {
+			type: Array
+			//observer: '_selectedLayersChanged'
+		},
+		headlight: {
+			type: Boolean,
+			value: 1
+		},
+		hourselected: {
+			type: Number,
+			value: 8
+		},
+		layers: {
+			type: Array,
+			value: function(){
+				var servicepath = 'http://research.geodan.nl/service/bgt3d';
+				return [
+					/*POINTS*/
+					//{name: 'bridge',reload: true, url: './data/pc_bgt_bridge_service.php'}
+					//,{name: 'groundpoints',	reload: true, url: servicepath}
+					{name: 'treepoints_ahn3', 	displayName: 'Treecluster 2015', hidden: true, active: false, url: servicepath, config: {eps: 2.5,minpoints: 350}}
+					,{name: 'treepoints_ahn2', 	displayName: 'Treecluster 2010', hidden: true, active: false, url: servicepath, config: {eps: 2.5,minpoints: 350}}
+					,{name: 'treepoints',		displayName: 'Trees', active: true, url: servicepath}
+					//,{name: 'object',		reload: true, url: './data/bgt_objectpoints.php'}
+					//,{name: 'building',		reload: true, url: './data/bgt_buildingpoints.php'}
+					//,{name: 'ahn2objects',		reload: true, url: './data/bgt_ahn2objectpoints.php'}
+					/*VECTOR*/
+					//{name: 'nwb',		active: true, url: './data/nwb_wegvak.php'}
+					//,{name: 'roofskeleton', active: true, url: servicepath} //'./data/bgt_terrain.php'}
+					,{name: 'lights', 	displayName: 'Lampposts', active: false, url: servicepath}
+					,{name: 'scheiding',displayName: 'Walls', active: true, url: servicepath}
+					
+					,{name: 'buildings',displayName: 'Buildings', active: true, url: servicepath} 
+					//,{name: 'roof', 	displayName: '', active: false, url: './data/bgt_roof.php'}
+					,{name: 'bridge',	displayName: 'Bridges', active: true, url: servicepath}
+					,{name: 'bridgepilons',	displayName: 'Bridgepilons', active: true, url: servicepath}
+					,{name: 'kade', 	displayName: 'Bank', active: true, url: servicepath}
+					,{name: 'steiger', 	displayName: 'Jetty', active: false, url: servicepath}
+					,{name: 'terrain', 	displayName: 'Terrain', active: true, url: servicepath}
+					,{name: 'roads', 	displayName: 'Roads', active: true, url: servicepath}
+					,{name: 'water', 	displayName: 'Water', active: true, url: servicepath}
+				];
+			}
+			
+		},
+		locations: {
+			type: Array,
+			value: function(){
+				return [
+				{bbox: '122110, 486549, 122498, 486790'  ,name: 'Hortus Amsterdam'},
+				{bbox: '119966, 485839, 120455, 486143'  ,name: 'Vondelpark tunnel'},
+				{bbox: '122640, 487020, 122888, 487174'  ,name: 'Nemo'},
+				{bbox: '121980, 486706, 122228, 486860'  ,name: 'Mr visserplein'},
+				{bbox: ' 93346, 465109,  93742, 465355'  ,name: 'Spoortunnel leiden'},
+				{bbox: '122996, 486846, 123240, 486998'  ,name: 'woonboot Anne'},
+				{bbox: '188045, 428786, 188411, 429044'  ,name: 'Nijmegen (Valkhof)'},
+				{bbox: '154459, 463904, 154947, 464231'  ,name: 'Amersfoort'},
+				{bbox: '154678, 463991, 154783, 464063'  ,name: 'Amersfoort_small'},
+				{bbox: ' 93616, 463691,  93887, 463981'  ,name: 'Leiden'},
+				{bbox: ' 93468, 462610,  93667, 462735'  ,name: 'Leiden prof wijk'},
+				{bbox: ' 78657, 455471,  78828, 455679'  ,name: 'Scheveningen'},
+				{bbox: '148945, 411439, 148975, 411471'  ,name: 'Den Bosch'},
+				{bbox: ' 90870, 391146,  91346, 392412'  ,name: 'unknown'},
+				{bbox: ' 77866, 456527,	 78174, 456879'  ,name: 'Change detection'}
+				] 
+			}
+		},
+		themeconfig: {
+			type: Object,
+			value: function(){
+				return {
+					gray: {
+					 materials: {
+						building: {diffuseColor: 'white',transparency: '0'},
+						water: {specularColor: '0.823529 0.705882 0.54902', diffuseColor: '0.9 1 1', shininess: '1'},
+						voetpad: {diffuseColor: 'gray'},
+						rijbaan_lokale_weg: {diffuseColor: 'gray'},
+						open_verharding:{diffuseColor: 'gray'},
+						erf:{diffuseColor: 'gray'},
+						groenvoorziening:{diffuseColor: 'green'},
+						'gemengd bos':{diffuseColor: 'green'},
+						struiken: {diffuseColor: 'green'},
+						dek:{diffuseColor: 'gray'},
+						pijler: {diffuseColor: 'gray'},
+						light: {emissiveColor: 'yellow', transparency: 0},
+						post: {diffuseColor: 'gray'},
+						roof: {diffuseColor: 'orange'},
+						scene: {skyColor: '0.4 0.6 0.8'},
+					 }
+					},
+					light: {
+					  materials: {
+						building: {diffuseColor: 'white'},
+						water: {specularColor: '0.823529 0.705882 0.54902', diffuseColor: '0.9 1 1', shininess: '1'},
+						light: {emissiveColor: 'black', transparency: 1},
+						scene: {skyColor: '0.4 0.6 0.8'},
+						erf:{diffuseColor: 'white'},
+					  }
+					},
+					functional: {
+						materials: {
+							fietspad:{diffuseColor: 'brown'},
+							inrit: {diffuseColor: 'gray'},
+							'OV-baan':{diffuseColor: 'gray'},
+							overweg:{diffuseColor: 'gray'},
+							parkeervlak:{diffuseColor: 'gray'},
+							'rijbaan autosnelweg': {diffuseColor: 'gray'},
+							'rijbaan autoweg': {diffuseColor: 'gray'},
+							'rijbaan lokale weg':{diffuseColor: 'gray'},
+							'rijbaan regionale weg':{diffuseColor: 'gray'},
+							spoorbaan:{diffuseColor: 'darkGray'},
+							transitie:{diffuseColor: 'purple'},
+							voetgangersgebied:{diffuseColor: 'white'},
+							voetpad:{diffuseColor: 'white'},
+							'voetpad op trap':{diffuseColor: 'white'},
+							woonerf:{diffuseColor: 'gray'},
+						}
+					}
+				}
+			}
+		}
+	},
+	observers: [
+	],
+	_loading: function(a,b){
+		var item = a.model.item;
+		var idx = this.layers.indexOf(a.model.item);
+		this.set('layers.'+idx+'.loading',true);
+	},
+	_loaded: function(a,b){
+		var item = a.model.item;
+		var idx = this.layers.indexOf(a.model.item);
+		this.set('layers.'+idx+'.loading',false);
+	},
+
+	_isActive: function(item){
+		return item.active;
+	},
+	_isnothidden: function(item){
+		return !item.hidden;
+	},
+	_selectedviewchanged: function(view){
+		 document.getElementById(view).setAttribute('set_bind','true');         
+	},
+	_selectedlocationchanged: function(bbox){
+		var arr = bbox.split(',');
+		this._flyTo({
+			west: arr[0],
+			south: arr[1],
+			east: arr[2],
+			north: arr[3]
+		});
+	},
+	layertoggle: function(e,d){
+		var self = this;
+		var status = e.target.checked;
+		var layername = e.model.item.name;
+		var layer = this.layers.forEach(function(l,i){
+				if (l.name == layername){
+					//var status = l.active?false:true; 
+					self.set('layers.'+i+'.active',status);
+					//l.active = status;
+				}
+		});
+	},
+	_flyTo: function(bbox){
+		var map = self.map;
+		map.dim.minx = parseInt(bbox.west);
+		map.dim.maxx = parseInt(bbox.east);
+		map.dim.miny = parseInt(bbox.south);
+		map.dim.maxy = parseInt(bbox.north);
+		
+		var tiles = map.bbox2tiles(map.dim.getBounds());
+		document.querySelectorAll('x3d-layer').forEach(function(d){
+			d.removeTiles();//TODO make nicer
+			d.tiles = tiles;
+		});
+		var centerX = (map.dim.minx + map.dim.maxx) / 2;
+		var centerY = (map.dim.miny + map.dim.maxy) / 2;
+		map.scene.append("viewpoint")
+			.attr( "centerOfRotation", centerX + " " + centerY + " 0" )
+			.attr( "position", centerX + " " + centerY + " 550")
+			.attr( "orientation", "0 0 0 1" )
+			.attr( "zNear",30)
+			.attr('set_bind',true);
+	},
+	ready: function(){
+		var self = this;
+		this.addEventListener('goto-rdcoords',function(d){
+      		var coords = d.detail;
+			var x = Math.round(coords[0]);
+            var y = Math.round(coords[1]);
+            var radius = 200;
+            
+            bbox = {
+            	west: x -radius,
+				east: x +radius,
+				south: y -radius,
+				north: y +radius
+			}
+            self._flyTo(bbox);
+      	  });
+	}
+});
+</script>
