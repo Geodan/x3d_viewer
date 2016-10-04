@@ -166,9 +166,10 @@ Polymer({
 					/*POINTS*/
 					//{name: 'bridge',reload: true, url: './data/pc_bgt_bridge_service.php'}
 					//,{name: 'groundpoints',	reload: true, url: servicepath}
-					{name: 'treepoints_ahn3', 	displayName: 'Treecluster 2015', hidden: true, active: false, url: servicepath, config: {eps: 2.5,minpoints: 350}}
-					,{name: 'treepoints_ahn2', 	displayName: 'Treecluster 2010', hidden: true, active: false, url: servicepath, config: {eps: 2.5,minpoints: 350}}
-					,{name: 'treepoints',		displayName: 'Trees', active: true, url: servicepath}
+					{name: 'rws_points',displayName: 'RWSPoints', hidden: false, active: true, url: './data/rws_pc_service.php'}
+					,{name: 'treepoints_ahn3', 	displayName: 'Treecluster 2015', hidden: false, active: false, url: servicepath, config: {eps: 2.5,minpoints: 350}}
+					,{name: 'treepoints_ahn2', 	displayName: 'Treecluster 2010', hidden: false, active: false, url: servicepath, config: {eps: 2.5,minpoints: 350}}
+					,{name: 'treepoints',		displayName: 'Trees', active: false, url: servicepath}
 					//,{name: 'object',		reload: true, url: './data/bgt_objectpoints.php'}
 					//,{name: 'building',		reload: true, url: './data/bgt_buildingpoints.php'}
 					//,{name: 'ahn2objects',		reload: true, url: './data/bgt_ahn2objectpoints.php'}
@@ -176,17 +177,16 @@ Polymer({
 					//{name: 'nwb',		active: true, url: './data/nwb_wegvak.php'}
 					//,{name: 'roofskeleton', active: true, url: servicepath} //'./data/bgt_terrain.php'}
 					,{name: 'lights', 	displayName: 'Lampposts', active: false, url: servicepath}
-					,{name: 'scheiding',displayName: 'Walls', active: true, url: servicepath}
-					
-					,{name: 'buildings',displayName: 'Buildings', active: true, url: servicepath} 
+					,{name: 'scheiding',displayName: 'Walls', 	active: false, url: servicepath}
+					,{name: 'buildings',displayName: 'Buildings', active: false, url: servicepath} 
 					//,{name: 'roof', 	displayName: '', active: false, url: './data/bgt_roof.php'}
-					,{name: 'bridge',	displayName: 'Bridges', active: true, url: servicepath}
-					,{name: 'bridgepilons',	displayName: 'Bridgepilons', active: true, url: servicepath}
-					,{name: 'kade', 	displayName: 'Bank', active: true, url: servicepath}
-					,{name: 'steiger', 	displayName: 'Jetty', active: false, url: servicepath}
+					,{name: 'bridge',	displayName: 'Bridges', active: false, url: servicepath}
+					,{name: 'bridgepilons',	displayName: 'Bridgepilons', active: false, url: servicepath}
+					,{name: 'kade', 	displayName: 'Bank', 	active: false, url: servicepath}
+					,{name: 'steiger', 	displayName: 'Jetty', 	active: false, url: servicepath}
 					,{name: 'terrain', 	displayName: 'Terrain', active: true, url: servicepath}
-					,{name: 'roads', 	displayName: 'Roads', active: true, url: servicepath}
-					,{name: 'water', 	displayName: 'Water', active: true, url: servicepath}
+					,{name: 'roads', 	displayName: 'Roads', 	active: false, url: servicepath}
+					,{name: 'water', 	displayName: 'Water', 	active: true, url: servicepath}
 				];
 			}
 			
@@ -209,7 +209,8 @@ Polymer({
 				{bbox: ' 78657, 455471,  78828, 455679'  ,name: 'Scheveningen'},
 				{bbox: '148945, 411439, 148975, 411471'  ,name: 'Den Bosch'},
 				{bbox: ' 90870, 391146,  91346, 392412'  ,name: 'unknown'},
-				{bbox: ' 77866, 456527,	 78174, 456879'  ,name: 'Change detection'}
+				{bbox: ' 77866, 456527,	 78174, 456879'  ,name: 'Change detection'},
+				{bbox: '452000, 138200,	452200,	138400'	 ,name: 'RWS'}
 				] 
 			}
 		},

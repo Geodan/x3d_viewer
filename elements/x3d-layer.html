@@ -295,7 +295,7 @@ Polymer({
                 })                 
                 .html(function(d){
                     if (d.geom && d.geom.indexOf('IndexedFaceSet') >  0){
-                        d.geom = d.geom.replace('IndexedFaceSet', 'IndexedFaceSet creaseAngle=\'3.14\' solid=\'false\' ');
+                        d.geom = d.geom.replace('IndexedFaceSet', 'IndexedFaceSet creaseangle="3.14" solid="false" ');
                     }
                     return d.geom;
                 });
