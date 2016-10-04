@@ -16,7 +16,9 @@ var sets = {
 	roads: { file : 'bgt_road.sql',sql: ''},
 	buildings: { file : 'bgt_buildings.sql', sql : '' },
 	roofskeleton: { file : 'bgt_roofskeleton.sql', sql : '' },
-	treepoints: { file : 'bgt_treepoints.sql', sql : '' },
+	treepoints: { file : 'ahn3_treepoints.sql', sql : '' },
+	treepoints_ahn3: { file : 'bgt_ahn3_treepoints.sql', sql : '' },
+	treepoints_ahn2: { file : 'bgt_ahn2_treepoints.sql', sql : '' },
 	groundpoints: { file: 'bgt_groundpoints.sql', sql: '' },
 	lights: { file : 'bgt_lights.sql', sql : '' }
 }; 
@@ -31,6 +33,8 @@ app.get( '/bgt3d', function( req, res ) {
 		var west = req.query [ 'west' ]; 
 		var east = req.query [ 'east' ]; 
 		var set = req.query [ 'set' ] || 'buildings';
+		var eps = req.query [ 'eps' ] || 3;
+		var minpoints = req.query [ 'minpoints' ] || 350;
 		var client = new pg.Client( { 
 				user : 'geodan', 
 				password : 'Gehijm', 
@@ -38,17 +42,20 @@ app.get( '/bgt3d', function( req, res ) {
 				host : 'metis', 
 				port : 5432 
 		} ); 
+		var querystring = fs.readFileSync( sets [ set ].file ).toString( );
 		client.connect( function( err ) { 
 				if( err ) {
 					res.status('could not connect to postgres').send(err)
 				} 
 				console.log('Set: ',set);
-				var querystring = sets [ set ].sql; 
+				//var querystring = sets [ set ].sql; 
 				querystring = querystring
 					.replace( /_west/g, west )
 					.replace( /_east/g, east )
 					.replace( /_south/g, south )
 					.replace( /_north/g, north )
+					.replace( /_eps/g ,eps)
+					.replace( /_minpoints/g ,minpoints)
 					.replace( /_zoom/g ,1)
 					.replace( /_segmentlength/g,10); 
 				client.query( querystring, function( err, result ) { 

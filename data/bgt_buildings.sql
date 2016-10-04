@@ -56,3 +56,4 @@ SELECT id,
 'building' as type,
 'red' color, ST_AsX3D((p.geom)) geom
 FROM polygons p
+WHERE p.geom Is Not Null --this can happen with not patch
