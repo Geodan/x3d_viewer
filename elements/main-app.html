@@ -86,7 +86,7 @@
 					<paper-dropdown-menu label="Goto">
 						<paper-listbox selected={{locationselected}} attr-for-selected="value" class="dropdown-content">
 							<template is='dom-repeat' items=[[locations]]>
-								<paper-item value=[[item.bbox]]>[[item.name]]</paper-item>
+								<paper-item value=[[item.coords]]>[[item.name]]</paper-item>
 							</template>
 						</paper-listbox>
 					</paper-dropdown-menu>
@@ -196,22 +196,22 @@ Polymer({
 			type: Array,
 			value: function(){
 				return [
-				{bbox: '122110, 486549, 122498, 486790'  ,name: 'Hortus Amsterdam'},
-				{bbox: '119966, 485839, 120455, 486143'  ,name: 'Vondelpark tunnel'},
-				{bbox: '122640, 487020, 122888, 487174'  ,name: 'Nemo'},
-				{bbox: '121980, 486706, 122228, 486860'  ,name: 'Mr visserplein'},
-				{bbox: ' 93346, 465109,  93742, 465355'  ,name: 'Spoortunnel leiden'},
-				{bbox: '122996, 486846, 123240, 486998'  ,name: 'woonboot Anne'},
-				{bbox: '188045, 428786, 188411, 429044'  ,name: 'Nijmegen (Valkhof)'},
-				{bbox: '154459, 463904, 154947, 464231'  ,name: 'Amersfoort'},
-				{bbox: '154678, 463991, 154783, 464063'  ,name: 'Amersfoort_small'},
-				{bbox: ' 93616, 463691,  93887, 463981'  ,name: 'Leiden'},
-				{bbox: ' 93468, 462610,  93667, 462735'  ,name: 'Leiden prof wijk'},
-				{bbox: ' 78657, 455471,  78828, 455679'  ,name: 'Scheveningen'},
-				{bbox: '148945, 411439, 148975, 411471'  ,name: 'Den Bosch'},
-				{bbox: ' 90870, 391146,  91346, 392412'  ,name: 'unknown'},
-				{bbox: ' 77866, 456527,	 78174, 456879'  ,name: 'Change detection'},
-				{bbox: '138289,	451857,	138447,	452016'	 ,name: 'RWS'}
+				{coords: [122110, 486549],bbox: '122110, 486549, 122498, 486790'  ,name: 'Hortus Amsterdam'},
+				{coords: [119966, 485839],bbox: '119966, 485839, 120455, 486143'  ,name: 'Vondelpark tunnel'},
+				{coords: [122640, 487020],bbox: '122640, 487020, 122888, 487174'  ,name: 'Nemo'},
+				{coords: [121980, 486706],bbox: '121980, 486706, 122228, 486860'  ,name: 'Mr visserplein'},
+				{coords: [ 93346, 465109],bbox: ' 93346, 465109,  93742, 465355'  ,name: 'Spoortunnel leiden'},
+				{coords: [122996, 486846],bbox: '122996, 486846, 123240, 486998'  ,name: 'woonboot Anne'},
+				{coords: [188045, 428786],bbox: '188045, 428786, 188411, 429044'  ,name: 'Nijmegen (Valkhof)'},
+				{coords: [154459, 463904],bbox: '154459, 463904, 154947, 464231'  ,name: 'Amersfoort'},
+				{coords: [154678, 463991],bbox: '154678, 463991, 154783, 464063'  ,name: 'Amersfoort_small'},
+				{coords: [ 93616, 463691],bbox: ' 93616, 463691,  93887, 463981'  ,name: 'Leiden'},
+				{coords: [ 93468, 462610],bbox: ' 93468, 462610,  93667, 462735'  ,name: 'Leiden prof wijk'},
+				{coords: [ 78657, 455471],bbox: ' 78657, 455471,  78828, 455679'  ,name: 'Scheveningen'},
+				{coords: [148945, 411439],bbox: '148945, 411439, 148975, 411471'  ,name: 'Den Bosch'},
+				{coords: [ 90870, 391146],bbox: ' 90870, 391146,  91346, 392412'  ,name: 'unknown'},
+				{coords: [ 77866, 456527],bbox: ' 77866, 456527,	 78174, 456879'  ,name: 'Change detection'},
+				{coords: [138289,	451857],bbox: '138289,	451857,	138447,	452016'	 ,name: 'RWS'}
 				
 				] 
 			}
@@ -293,14 +293,8 @@ Polymer({
 	_selectedviewchanged: function(view){
 		 document.getElementById(view).setAttribute('set_bind','true');         
 	},
-	_selectedlocationchanged: function(bbox){
-		var arr = bbox.split(',');
-		this._flyTo({
-			west: arr[0],
-			south: arr[1],
-			east: arr[2],
-			north: arr[3]
-		});
+	_selectedlocationchanged: function(coords){
+		this._flyTo(coords);
 	},
 	layertoggle: function(e,d){
 		var self = this;
@@ -314,7 +308,16 @@ Polymer({
 				}
 		});
 	},
-	_flyTo: function(bbox){
+	_flyTo: function(coords,r){
+		var radius = r || 200;
+		var x = coords[0];
+		var y = coords[1];
+		var bbox = {
+			west: x -radius,
+			east: x +radius,
+			south: y -radius,
+			north: y +radius
+		}
 		var map = self.map;
 		map.dim.minx = parseInt(bbox.west);
 		map.dim.maxx = parseInt(bbox.east);
@@ -336,6 +339,7 @@ Polymer({
 			.attr('set_bind',true);
 	},
 	treeDemo: function(){
+		this._flyTo([93610,463873]);
 		map.scene.select("#viewpoint")
 			.attr( "centerOfRotation", '93610.0181 463873.2183 25.6168')
 			.attr( "position", '93610.0181 463873.2183 25.6168')
@@ -350,17 +354,7 @@ Polymer({
 		var self = this;
 		this.addEventListener('goto-rdcoords',function(d){
       		var coords = d.detail;
-			var x = Math.round(coords[0]);
-            var y = Math.round(coords[1]);
-            var radius = 200;
-            
-            bbox = {
-            	west: x -radius,
-				east: x +radius,
-				south: y -radius,
-				north: y +radius
-			}
-            self._flyTo(bbox);
+            self._flyTo(coords);
       	  });
 	}
 });
