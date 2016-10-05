@@ -92,7 +92,7 @@
 					</paper-dropdown-menu>
 				</div>
 				<div>
-					<paper-item>1. Tree growth</paper-item>
+					<paper-item on-click='treeDemo'>1. Tree growth</paper-item>
 					<!-- Vershil in grootte van bomen -->
 					<paper-item>2. Cluster trees</paper-item>
 					<!-- Individuele bomen vinden obv. cluster -->
@@ -122,7 +122,8 @@
 					></x3d-layer>
 					
 			</template>
-		</x3d-viewer></div>
+		</x3d-viewer>
+		</div>
 	</paper-drawer-panel>
  	
  </template>
@@ -166,7 +167,7 @@ Polymer({
 					/*POINTS*/
 					//{name: 'bridge',reload: true, url: './data/pc_bgt_bridge_service.php'}
 					//,{name: 'groundpoints',	reload: true, url: servicepath}
-					{name: 'rwspoints',displayName: 'RWSPoints', hidden: false, active: true, url: servicepath}
+					{name: 'rwspoints',displayName: 'RWSPoints', hidden: false, active: false, url: servicepath}
 					,{name: 'treepoints_ahn3', 	displayName: 'Treecluster 2015', hidden: false, active: false, url: servicepath, config: {eps: 2.5,minpoints: 350}}
 					,{name: 'treepoints_ahn2', 	displayName: 'Treecluster 2010', hidden: false, active: false, url: servicepath, config: {eps: 2.5,minpoints: 350}}
 					,{name: 'treepoints',		displayName: 'Trees', active: false, url: servicepath}
@@ -327,12 +328,23 @@ Polymer({
 		});
 		var centerX = (map.dim.minx + map.dim.maxx) / 2;
 		var centerY = (map.dim.miny + map.dim.maxy) / 2;
-		map.scene.append("viewpoint")
+		map.scene.select("#viewpoint")
 			.attr( "centerOfRotation", centerX + " " + centerY + " 0" )
 			.attr( "position", centerX + " " + centerY + " 550")
 			.attr( "orientation", "0 0 0 1" )
 			.attr( "zNear",30)
 			.attr('set_bind',true);
+	},
+	treeDemo: function(){
+		map.scene.select("#viewpoint")
+			.attr( "centerOfRotation", '93610.0181 463873.2183 25.6168')
+			.attr( "position", '93610.0181 463873.2183 25.6168')
+			.attr( "orientation", '-0.3716 0.6002 0.7083 4.1466' )
+			.attr( "zNear",30);
+		map.scene.select('#viewpoint').attr('set_bind',true);
+			
+			
+			
 	},
 	ready: function(){
 		var self = this;
