@@ -101,21 +101,23 @@ Polymer({
 		var eps = this.config?this.config.eps:0;
 		var minpoints = this.config?this.config.minpoints:0;
 		return new Promise(function(resolve, reject){
-			if (tile.data[self.name]){
-				resolve(tile.data[self.name]);
-			}
-			dsv(self.url + 
-				'?set='+self.name+
-				'&west='+bbox[0]+
-				'&east='+bbox[2]+
-				'&south='+bbox[1]+
-				'&north='+bbox[3]+ 
-				'&eps='+eps+
-				'&minpoints='+minpoints
-				,function(d){
-					resolve(d);
-				//self.tileLoaded(d);
-			});
+			window.setTimeout(function(){
+				if (tile.data[self.name]){
+					resolve(tile.data[self.name]);
+				}
+				dsv(self.url + 
+					'?set='+self.name+
+					'&west='+bbox[0]+
+					'&east='+bbox[2]+
+					'&south='+bbox[1]+
+					'&north='+bbox[3]+ 
+					'&eps='+eps+
+					'&minpoints='+minpoints
+					,function(d){
+						resolve(d);
+					//self.tileLoaded(d);
+				});
+			},Math.random() * 2000);
 		});
 	},
 	tileLoaded: function (data) {

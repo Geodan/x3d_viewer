@@ -35,7 +35,7 @@ round(PC_Get(pt,'Red')/65535 * 255) x,
 round(PC_Get(pt,'Green')/65535 * 255) y, 
 round(PC_Get(pt,'Blue')/65535 * 255) z 
 FROM points a
-WHERE random() < 0.1
+WHERE random() < 0.01
 ;";
 
 $result = pg_query($conn, $query);

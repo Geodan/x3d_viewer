@@ -6,6 +6,7 @@ var app = express( );
 var fs = require( 'fs' ); 
 var pg = require( 'pg' ); 
 var sets = {
+	rwspoints: { file: 'rws_points.sql',sql: ''},
 	kade: { file: 'bgt_kade.sql',sql: ''},
 	steiger: { file: 'bgt_steiger.sql',sql: ''},
 	water: { file: 'bgt_water.sql',sql: ''},
