@@ -12,7 +12,7 @@ terrain AS (
 	  (ST_Dump(
 		ST_Intersection(a.wkb_geometry, b.geom)
 	  )).geom
-	FROM bgt_import2.waterdeel_2dactueelbestaand a, bounds b
+	FROM bgt.waterdeel_2dactueelbestaand a, bounds b
 	WHERE ST_Intersects(a.wkb_geometry, b.geom)
 )
 ,polygons AS (

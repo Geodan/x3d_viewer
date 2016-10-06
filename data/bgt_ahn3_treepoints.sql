@@ -4,7 +4,7 @@ bounds AS (
 ),
 treelocations AS (
 	SELECT a.*
-	FROM bgt_import2.vegetatieobject_2dactueelbestaand a, bounds
+	FROM bgt.vegetatieobject_2dactueelbestaand a, bounds
 	WHERE ST_Intersects(geom, wkb_geometry)
 ),
 pointcloud_unclassified AS(

@@ -11,13 +11,12 @@ WITH bounds AS (
 		SELECT
 			--a.ogc_fid id,
 			1 as id,
-			ST_Simplify(ST_Force2D(ST_Union(geometrie2dgrondvlak)),0.95) geom
-		FROM bgt_import.buildingpart a, bounds b
-		WHERE ST_Area(a.geometrie2dgrondvlak) > 30
-		AND eindregistratie Is Null
-		AND ST_IsValid(a.geometrie2dgrondvlak)
-		AND ST_Intersects(a.geometrie2dgrondvlak, b.geom)
-		AND ST_Intersects(ST_Centroid(a.geometrie2dgrondvlak), b.geom)
+			ST_Simplify(ST_Force2D(ST_Union(wkb_geometry)),0.95) geom
+		FROM bgt.pand_2dactueelbestaand a, bounds b
+		WHERE ST_Area(a.wkb_geometry) > 30
+		AND ST_IsValid(a.wkb_geometry)
+		AND ST_Intersects(a.wkb_geometry, b.geom)
+		AND ST_Intersects(ST_Centroid(a.wkb_geometry), b.geom)
 	),
 	footprints AS (
 		SELECT id, (ST_Dump(geom)).geom geom FROM prefootprints

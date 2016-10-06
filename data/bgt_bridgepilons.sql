@@ -10,7 +10,7 @@ pointcloud_unclassified AS (
 footprints AS (
 	SELECT ST_Force3D(ST_SetSrid(ST_CurveToLine(a.wkb_geometry),28992)) geom,
 	a.ogc_fid id, 'pijler'::text as type
-	FROM bgt_import2.overbruggingsdeel_2dactueel a, bounds b
+	FROM bgt.overbruggingsdeel_2dactueelbestaand a, bounds b
 	WHERE 1 = 1
 	AND typeoverbruggingsdeel = 'pijler'
 	AND ST_Intersects(ST_SetSrid(ST_CurveToLine(a.wkb_geometry),28992), b.geom)

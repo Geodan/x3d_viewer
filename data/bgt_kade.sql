@@ -15,7 +15,7 @@ pointcloud_all AS (
 footprints AS (
 	SELECT ST_Force3D(ST_Intersection(a.wkb_geometry, b.geom)) geom,
 	a.ogc_fid id
-	FROM bgt_import2.scheiding_2dactueelbestaand a, bounds b
+	FROM bgt.scheiding_2dactueelbestaand a, bounds b
 	WHERE 1 = 1
 	AND (bgt_type = 'kademuur') 
 	AND ST_Intersects(a.wkb_geometry, b.geom)

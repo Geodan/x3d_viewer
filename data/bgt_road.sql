@@ -6,8 +6,8 @@ bounds AS (
 
 mainroads AS (
 	SELECT a.ogc_fid, 'road'::text AS class, a.bgt_functie as type, ST_Intersection(a.wkb_geometry,c.geom) geom 
-	FROM bgt_import2.wegdeel_2d a
-	LEFT JOIN bgt_import2.overbruggingsdeel_2d b
+	FROM bgt.wegdeel_2dactueelbestaand a
+	LEFT JOIN bgt.overbruggingsdeel_2dactueelbestaand b
 	ON (St_Intersects((a.wkb_geometry), (b.wkb_geometry)) AND St_Contains(ST_buffer((b.wkb_geometry),1), (a.wkb_geometry)))
 	,bounds c
 	WHERE a.relatieveHoogteligging = 0
@@ -18,14 +18,14 @@ mainroads AS (
 ),
 auxroads AS (
 	SELECT ogc_fid, 'road'::text AS class, bgt_functie as type, ST_Intersection(wkb_geometry,geom) geom
-	FROM bgt_import2.ondersteunendwegdeel_2d, bounds
+	FROM bgt.ondersteunendwegdeel_2dactueelbestaand, bounds
 	WHERE relatieveHoogteligging = 0
 	AND eindregistratie Is Null
 	AND ST_Intersects(geom, wkb_geometry)
 ),
 tunnels AS (
 	SELECT ogc_fid, 'road'::text AS class, 'tunnel'::text as type, ST_Intersection(wkb_geometry,geom) geom
-	FROM bgt_import2.tunneldeel_2d, bounds
+	FROM bgt.tunneldeel_2dactueelbestaand, bounds
 	WHERE eindregistratie Is Null
 	AND ST_Intersects(geom, wkb_geometry)
 ),

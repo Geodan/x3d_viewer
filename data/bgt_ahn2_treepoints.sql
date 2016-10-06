@@ -4,18 +4,18 @@ bounds AS (
 ),
 treelocations AS (
 	SELECT ogc_fid,wkb_geometry 
-	FROM bgt_import2.vegetatieobject_2dactueelbestaand, bounds
+	FROM bgt.vegetatieobject_2dactueelbestaand, bounds
 	WHERE ST_Intersects(geom, wkb_geometry)
 ),
 buildings AS (
 	SELECT ST_Union(wkb_geometry) wkb_geometry 
-	FROM bgt_import2.pand_2dactueelbestaand, bounds
+	FROM bgt.pand_2dactueelbestaand, bounds
 	WHERE ST_Intersects(geom, wkb_geometry)
 ),
 patches AS(
 	SELECT 
 	 pa  
-	FROM ahn2_pointcloud.u30fz1, bounds 
+	FROM ahn2_pointcloud.u30fz1, bounds --FIXME, should become whole AHN2
 	WHERE ST_DWithin(geom, Geometry(pa),10) --patches should be INSIDE bounds
 ),
 treemeta AS (
