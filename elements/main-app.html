@@ -60,6 +60,8 @@
 					
 						<paper-listbox selected={{viewselected}} attr-for-selected="name" class="dropdown-content">
 							<paper-item name='viewpoint'>Top view</paper-item>
+							<paper-item name='Northwards'>North</paper-item>
+							<paper-item name='Southwards'>South</paper-item>
 							<paper-item name='leiden1'>View 1</paper-item>
 							<paper-item name='leiden2'>View 2</paper-item>
 							<paper-item name='leiden3'>View 3</paper-item>
@@ -158,6 +160,10 @@ Polymer({
 		hourselected: {
 			type: Number,
 			value: 8
+		},
+		map: {
+			type: Object,
+			observer: '_mapChanged'
 		},
 		layers: {
 			type: Array,
@@ -308,6 +314,9 @@ Polymer({
 				}
 		});
 	},
+	_mapChanged: function(map){
+		this._flyTo([93716,463791]);
+	},
 	_flyTo: function(coords,r){
 		var radius = r || 200;
 		var x = coords[0];
@@ -329,20 +338,24 @@ Polymer({
 			d.removeTiles();//TODO make nicer
 			d.tiles = tiles;
 		});
-		var centerX = (map.dim.minx + map.dim.maxx) / 2;
-		var centerY = (map.dim.miny + map.dim.maxy) / 2;
+		
 		map.scene.select("#viewpoint")
-			.attr( "centerOfRotation", centerX + " " + centerY + " 0" )
-			.attr( "position", centerX + " " + centerY + " 550")
-			.attr( "orientation", "0 0 0 1" )
-			.attr( "zNear",30)
+			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
+			.attr( "position", coords[0] + " " + coords[1] + " 550")
 			.attr('set_bind',true);
+		map.scene.select("#Northwards")
+			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
+			.attr( "position", coords[0] + " " + (coords[1] -300) + " 20");
+		map.scene.select("#Southwards")
+			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
+			.attr( "position", coords[0] + " " + (coords[1] +300) + " 20");
+			
 	},
 	treeDemo: function(){
 		this._flyTo([93610,463873]);
 		map.scene.select("#viewpoint")
-			.attr( "centerOfRotation", '93610.0181 463873.2183 25.6168')
-			.attr( "position", '93610.0181 463873.2183 25.6168')
+			.attr( "centerOfRotation", '93610 463873 25')
+			.attr( "position", '93610 463873 25')
 			.attr( "orientation", '-0.3716 0.6002 0.7083 4.1466' )
 			.attr( "zNear",30);
 		map.scene.select('#viewpoint').attr('set_bind',true);

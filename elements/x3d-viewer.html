@@ -31,10 +31,22 @@
 		    ></NavigationInfo>
 		 <ViewPoint id='viewpoint'
            centerOfRotation="0 0 0"
-           position="100 100 50"
+           position="0 0 100"
 		   zNear=30
-		   orientation="0.2 0 0 0.8"
+		   orientation="0 0 0 0"
 		   ></ViewPoint>
+		<ViewPoint id='Northwards'
+			zNear=30 
+    		centerOfRotation='0 0 0'
+    		position='0 0 0'
+    		orientation='1 0 0 1.5'
+    		></ViewPoint>
+    	<ViewPoint id='Southwards'
+			zNear=30 
+    		centerOfRotation='0 0 0'
+    		position='0 0 0'
+    		orientation='1 0 0 3'
+    		></ViewPoint>
     	<ViewPoint id='leiden1' 
     		zNear=30 
     		centerOfRotation='93610.0181 463873.2183 25.6168'
@@ -117,9 +129,9 @@ Polymer({
 		
 	},
 	attached: function(){
-		this.draw();
+		this.init();
 	},
-	draw: function(){
+	init: function(){
 		this.map = render(wxs3, this.$.x3delement, {
 			themeconfig: this.themeconfig,
 			tilesize: this.tilesize,

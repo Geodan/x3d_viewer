@@ -145,7 +145,7 @@ var render = function(ns, divid, config){
         this.createCamera();
 
         // Generate tiles and boundingboxes
-        this.bbox2tiles(this.dim.getBounds());
+        //this.bbox2tiles(this.dim.getBounds());
     };
 
     ns.ThreeDMap.prototype.createRenderer = function () {
