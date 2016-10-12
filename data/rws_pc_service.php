@@ -4,6 +4,7 @@ $north = $_REQUEST['north'];
 $south = $_REQUEST['south'];
 $west  = $_REQUEST['west'];
 $east  = $_REQUEST['east'];
+$density  = $_REQUEST['density'] || 0.01;
 
 //header('Content-type: application/json');
 //$conn = pg_pconnect("host=192.168.26.76 dbname=research user=postgres password=postgres");
@@ -35,7 +36,7 @@ round(PC_Get(pt,'Red')/65535 * 255) x,
 round(PC_Get(pt,'Green')/65535 * 255) y, 
 round(PC_Get(pt,'Blue')/65535 * 255) z 
 FROM points a
-WHERE random() < 0.01
+WHERE random() < $density
 ;";
 
 $result = pg_query($conn, $query);

@@ -94,11 +94,12 @@
 					</paper-dropdown-menu>
 				</div>
 				<div>
-					<paper-item on-click='treeDemo'>1. Tree growth</paper-item>
+					<paper-item on-click='treeDemo'>Tree growth</paper-item>
 					<!-- Vershil in grootte van bomen -->
-					<paper-item>2. Cluster trees</paper-item>
+					<paper-item on-click='lightDemo'>Moving light</paper-item>
+					<paper-item>Cluster trees</paper-item>
 					<!-- Individuele bomen vinden obv. cluster -->
-					<paper-item>3. Change detection</paper-item>
+					<paper-item>Change detection</paper-item>
 					<!-- Zichtbaar maken verschil in parkeer richting/dakopbouw in Scheveningen-->
 				</div>
 			</iron-pages>
@@ -208,16 +209,16 @@ Polymer({
 				{coords: [121980, 486706],bbox: '121980, 486706, 122228, 486860'  ,name: 'Mr visserplein'},
 				{coords: [ 93346, 465109],bbox: ' 93346, 465109,  93742, 465355'  ,name: 'Spoortunnel leiden'},
 				{coords: [122996, 486846],bbox: '122996, 486846, 123240, 486998'  ,name: 'woonboot Anne'},
-				{coords: [188045, 428786],bbox: '188045, 428786, 188411, 429044'  ,name: 'Nijmegen (Valkhof)'},
-				{coords: [154459, 463904],bbox: '154459, 463904, 154947, 464231'  ,name: 'Amersfoort'},
-				{coords: [154678, 463991],bbox: '154678, 463991, 154783, 464063'  ,name: 'Amersfoort_small'},
+				//{coords: [188045, 428786],bbox: '188045, 428786, 188411, 429044'  ,name: 'Nijmegen (Valkhof)'},
+				//{coords: [154459, 463904],bbox: '154459, 463904, 154947, 464231'  ,name: 'Amersfoort'},
+				//{coords: [154678, 463991],bbox: '154678, 463991, 154783, 464063'  ,name: 'Amersfoort_small'},
 				{coords: [ 93616, 463691],bbox: ' 93616, 463691,  93887, 463981'  ,name: 'Leiden'},
 				{coords: [ 93468, 462610],bbox: ' 93468, 462610,  93667, 462735'  ,name: 'Leiden prof wijk'},
 				{coords: [ 78657, 455471],bbox: ' 78657, 455471,  78828, 455679'  ,name: 'Scheveningen'},
-				{coords: [148945, 411439],bbox: '148945, 411439, 148975, 411471'  ,name: 'Den Bosch'},
+				//{coords: [148945, 411439],bbox: '148945, 411439, 148975, 411471'  ,name: 'Den Bosch'},
 				{coords: [ 90870, 391146],bbox: ' 90870, 391146,  91346, 392412'  ,name: 'unknown'},
 				{coords: [ 77866, 456527],bbox: ' 77866, 456527,	 78174, 456879'  ,name: 'Change detection'},
-				{coords: [138289,	451857],bbox: '138289,	451857,	138447,	452016'	 ,name: 'RWS'}
+				//{coords: [138289,	451857],bbox: '138289,	451857,	138447,	452016'	 ,name: 'RWS'}
 				
 				] 
 			}
@@ -317,6 +318,33 @@ Polymer({
 	_mapChanged: function(map){
 		this._flyTo([93716,463791]);
 	},
+	viewFunc: function(evt){
+	
+		// show viewpoint values
+		if (evt)
+		{
+			var pos = evt.position;
+			var rot = evt.orientation;
+			var mat = evt.matrix;
+		
+			var camPos = pos.x.toFixed(4)+' '+pos.y.toFixed(4)+' '+pos.z.toFixed(4);
+			var camRot = rot[0].x.toFixed(4)+' '+rot[0].y.toFixed(4)+' '+rot[0].z.toFixed(4)+' '+rot[1].toFixed(4);
+			console.log(camRot);
+			//document.getElementById("viewMat").innerHTML = "&ltViewpoint position='" + 
+															camPos + "' orientation='" + camRot + "'&gt";
+		}
+		
+		// update 2d marker also if camera changes since projection is now wrong
+		/*
+		var trans = x3d.fields.SFVec3f.parse(document.getElementById('bar').getAttribute("translation"));
+		var pos2d = runtime.calcPagePos(trans.x, trans.y, trans.z);
+		var anno = document.getElementById("anno2d");
+		
+		anno.innerHTML = "(" + pos2d[0] + ", " + pos2d[1] + ")";
+		anno.style.left = (pos2d[0]+1) + "px";
+		anno.style.top = (pos2d[1]+1) + "px";
+		*/
+	},
 	_flyTo: function(coords,r){
 		var radius = r || 200;
 		var x = coords[0];
@@ -349,7 +377,11 @@ Polymer({
 		map.scene.select("#Southwards")
 			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
 			.attr( "position", coords[0] + " " + (coords[1] +300) + " 20");
-			
+		document.getElementById('viewpoint').addEventListener('viewpointChanged', this.viewFunc, false);
+		
+		map.scene.select('#pointlight')
+			.attr('location',coords[0] + " " + coords[1] + " 25");
+		
 	},
 	treeDemo: function(){
 		this._flyTo([93610,463873]);
@@ -363,12 +395,21 @@ Polymer({
 			
 			
 	},
+	lightDemo: function(){
+		d3.select('#pointlight')
+			.transition().duration(5000)
+			.attr('location','93716 463721 25')
+			.transition().duration(5000)
+			.attr('location','93766 463721 25');
+		
+	},
 	ready: function(){
 		var self = this;
 		this.addEventListener('goto-rdcoords',function(d){
       		var coords = d.detail;
             self._flyTo(coords);
       	  });
+      	
 	}
 });
 </script>

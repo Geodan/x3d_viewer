@@ -165,7 +165,7 @@ var render = function(ns, divid, config){
 		var fov = 45;
         if (this.dim.Z) {
             cameraHeight = this.dim.Z;
-        } else {
+        } else {  
             cameraHeight = (this.dim.metersHeight / 2) / Math.tan((fov / 2) * Math.PI / 180);
         }
         // Place camera in middle of bbox
