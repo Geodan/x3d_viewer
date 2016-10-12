@@ -2,9 +2,11 @@
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+
 <link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
 <link rel="import" href="../bower_components/paper-tabs/paper-tab.html">
 <link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
 <link rel="import" href="../bower_components/paper-drawer-panel/paper-drawer-panel.html">
 <link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
@@ -26,10 +28,21 @@
  paper-item {
  	 cursor: pointer;
  }
+ paper-toolbar.white {
+    --paper-toolbar-background: white;
+    --paper-toolbar-title: {
+      font-style: italic;
+      font-weight: bold;
+    };
+    padding: 20px;
+ }
+ .title {
+ 	 margin-top: 10px; 
+ }
  
  </style>
  <template>
- 	<paper-drawer-panel>
+ 	<paper-drawer-panel id='menu'>
 		<div drawer>
 			<paper-toolbar class="medium-tall">
 			<div class="title">X3D viewer</div>
@@ -62,6 +75,10 @@
 							<paper-item name='viewpoint'>Top view</paper-item>
 							<paper-item name='Northwards'>North</paper-item>
 							<paper-item name='Southwards'>South</paper-item>
+							<paper-item name='front'>front</paper-item>
+							<paper-item name='left'>left</paper-item>
+							<paper-item name='right'>right</paper-item>
+							<paper-item name='top'>top</paper-item>
 							<paper-item name='leiden1'>View 1</paper-item>
 							<paper-item name='leiden2'>View 2</paper-item>
 							<paper-item name='leiden3'>View 3</paper-item>
@@ -94,6 +111,7 @@
 					</paper-dropdown-menu>
 				</div>
 				<div>
+					<paper-item on-click='loopDemo'>Loop</paper-item>
 					<paper-item on-click='treeDemo'>Tree growth</paper-item>
 					<!-- Vershil in grootte van bomen -->
 					<paper-item on-click='lightDemo'>Moving light</paper-item>
@@ -105,27 +123,38 @@
 			</iron-pages>
 			
 		</div>
-		<div main><x3d-viewer 
-			 map={{map}} 
-			 headlight=[[headlight]]
-			 hour=[[hourselected]]
-			 themeconfig=[[themeconfig]]>
-			<template is='dom-repeat' items=[[layers]]>
-				<transform id=[[item.name]]></transform>
-				
-				<x3d-layer 
-					active=[[item.active]] 
-					map=[[map]]
-					on-loading='_loading'
-					on-loaded='_loaded'
-					url=[[item.url]] 
-					name=[[item.name]]
-					themeconfig=[[themeconfig]]
-					config=[[item.config]]
-					></x3d-layer>
+		<div main>
+		<paper-header-panel class="flex">
+			<paper-toolbar class="medium-tall white" justify='justified'>
+			 	<span class='title'>
+			 		<img src='../images/geodan.png' height='80px'>
+			 		<img src='../images/nlesc.png' height='80px'>
+			 		<img src='../images/CWI.png' height='80px'>
+			 		<img src='../images/commit.png' height='80px'>
+			 	</span>
+			</paper-toolbar>
+			<x3d-viewer 
+				 map={{map}} 
+				 headlight=[[headlight]]
+				 hour=[[hourselected]]
+				 themeconfig=[[themeconfig]]>
+				<template is='dom-repeat' items=[[layers]]>
+					<transform id=[[item.name]]></transform>
 					
-			</template>
-		</x3d-viewer>
+					<x3d-layer 
+						active=[[item.active]] 
+						map=[[map]]
+						on-loading='_loading'
+						on-loaded='_loaded'
+						url=[[item.url]] 
+						name=[[item.name]]
+						themeconfig=[[themeconfig]]
+						config=[[item.config]]
+						></x3d-layer>
+						
+				</template>
+			</x3d-viewer>
+		</paper-header-panel>
 		</div>
 	</paper-drawer-panel>
  	
@@ -377,6 +406,20 @@ Polymer({
 		map.scene.select("#Southwards")
 			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
 			.attr( "position", coords[0] + " " + (coords[1] +300) + " 20");
+		
+		map.scene.select("#front")
+			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
+			.attr( "position", coords[0] + " " + (coords[1]) + " 20");
+		map.scene.select("#right")
+			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
+			.attr( "position", coords[0] + " " + (coords[1]) + " 20");
+		map.scene.select("#left")
+			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
+			.attr( "position", coords[0] + " " + (coords[1]) + " 20");
+		map.scene.select("#top")
+			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
+			.attr( "position", coords[0] + " " + (coords[1]) + " 20");
+			
 		document.getElementById('viewpoint').addEventListener('viewpointChanged', this.viewFunc, false);
 		
 		map.scene.select('#pointlight')
@@ -402,6 +445,19 @@ Polymer({
 			.transition().duration(5000)
 			.attr('location','93766 463721 25');
 		
+	},
+	loopDemo: function(){
+		var c = 0;
+		var d = document.querySelector('#menu');
+		d.forceNarrow = true;
+		map.scene.select('#leiden1').attr('set_bind',true);
+		var viewpoints = ['#leiden1','#leiden2','#leiden3'];
+		function switchviewpoint(){
+			if (c > viewpoints.length){c=0};
+			c++; 
+			map.scene.select(viewpoints[c]).attr('set_bind',true);
+		}
+		window.setInterval(switchviewpoint,2000);
 	},
 	ready: function(){
 		var self = this;

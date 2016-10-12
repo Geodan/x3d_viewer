@@ -12,16 +12,21 @@
 	    width: 100%;
 	    display: block;
 	}
+	#debugconsole {
+		display: block;
+	}
 	
  </style>
  <template>
- <x3d id="x3delement" width='100%' height='80%'>
+ <div id='debugconsole'>
+ </div>
+ <x3d id="x3delement" width='100%' height='60%'>
     <Scene class='scene'>
     	<Environment frustumCulling=true smallFeatureCulling=true smallFeatureThreshold=3 lowPriorityCulling=true lowPriorityThreshold=0.99></Environment>
     	<Background class="material" 
     		skyColor="0.1843137254901961 0.3411764705882353 0.47058823529411764"></Background>
     	<PointLight id='pointlight' 
-    		on='TRUE' 
+    		on='FALSE' 
     		intensity='0.9000'
     		ambientIntensity='0.5'
     		color='0.0 0.6 0.0' 
@@ -40,6 +45,10 @@
 		    headlight=[[headlight]]
 		    type='"EXAMINE" "ANY"'
 		    ></NavigationInfo>
+		<Viewpoint id="front" position="" orientation="-0.01451 0.99989 0.00319 3.15833" description="camera"></Viewpoint>
+        <Viewpoint id="right" position="" orientation="-0.00318 -0.99950 -0.03159 2.06609" description="camera"></Viewpoint>
+        <Viewpoint id="left" position="" orientation="-0.08205 0.99612 -0.03175 1.73722" description="camera"></Viewpoint>
+        <Viewpoint id="top" position="" orientation="-0.00307 0.87466 0.48473 3.12040" description="camera"></Viewpoint>
 		 <ViewPoint id='viewpoint'
            centerOfRotation="0 0 0"
            position="0 0 100"
