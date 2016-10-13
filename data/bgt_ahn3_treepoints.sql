@@ -36,7 +36,7 @@ points_filtered AS (
 )
 SELECT cid as id, 
 'tree' as type, 
-'green' as color, 
+'lightGreen' as color, 
 ST_AsX3D(ST_Collect(geom)) geom,
 MAX(PC_Get(pt,'z')) - MIN(PC_Get(pt,'z')) as height
 
