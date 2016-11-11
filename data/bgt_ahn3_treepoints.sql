@@ -4,7 +4,7 @@ bounds AS (
 ),
 treelocations AS (
 	SELECT a.*
-	FROM bgt_import2.vegetatieobject_2dactueelbestaand a, bounds
+	FROM bgt.vegetatieobject_2dactueelbestaand a, bounds
 	WHERE ST_Intersects(geom, wkb_geometry)
 ),
 pointcloud_unclassified AS(
@@ -36,7 +36,7 @@ points_filtered AS (
 )
 SELECT cid as id, 
 'tree' as type, 
-'green' as color, 
+'lightGreen' as color, 
 ST_AsX3D(ST_Collect(geom)) geom,
 MAX(PC_Get(pt,'z')) - MIN(PC_Get(pt,'z')) as height
 

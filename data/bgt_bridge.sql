@@ -11,7 +11,7 @@ pointcloud AS (
 footprints AS (
 	SELECT nextval('counter') id, ogc_fid fid, 'bridge'::text AS class, 'dek'::text AS type,
 	  ST_CurveToLine(a.wkb_geometry) geom
-	FROM bgt_import2.overbruggingsdeel_2dactueel a, bounds b
+	FROM bgt.overbruggingsdeel_2dactueelbestaand a, bounds b
 	WHERE 1 = 1
 	AND typeoverbruggingsdeel = 'dek'
 	AND ST_Intersects(ST_SetSrid(ST_CurveToLine(a.wkb_geometry),28992), b.geom)
@@ -20,8 +20,8 @@ footprints AS (
 ,roads AS (
 	SELECT nextval('counter') id,a.ogc_fid, 'bridge'::text AS class, a.bgt_functie as type, 
 		a.wkb_geometry geom
-	FROM bgt_import2.wegdeel_2d a
-	LEFT JOIN bgt_import2.overbruggingsdeel_2d b
+	FROM bgt.wegdeel_2dactueelbestaand a
+	LEFT JOIN bgt.overbruggingsdeel_2dactueelbestaand b
 	ON (St_Intersects((a.wkb_geometry), (b.wkb_geometry)) AND St_Contains(ST_buffer((b.wkb_geometry),1), (a.wkb_geometry)))
 	,bounds c
 	WHERE a.relatieveHoogteligging > -1

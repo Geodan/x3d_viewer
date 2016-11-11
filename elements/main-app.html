@@ -2,9 +2,11 @@
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+
 <link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
 <link rel="import" href="../bower_components/paper-tabs/paper-tab.html">
 <link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
 <link rel="import" href="../bower_components/paper-drawer-panel/paper-drawer-panel.html">
 <link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
@@ -26,10 +28,21 @@
  paper-item {
  	 cursor: pointer;
  }
+ paper-toolbar.white {
+    --paper-toolbar-background: white;
+    --paper-toolbar-title: {
+      font-style: italic;
+      font-weight: bold;
+    };
+    padding: 20px;
+ }
+ .title {
+ 	 margin-top: 10px; 
+ }
  
  </style>
  <template>
- 	<paper-drawer-panel>
+ 	<paper-drawer-panel id='menu'>
 		<div drawer>
 			<paper-toolbar class="medium-tall">
 			<div class="title">X3D viewer</div>
@@ -60,6 +73,8 @@
 					
 						<paper-listbox selected={{viewselected}} attr-for-selected="name" class="dropdown-content">
 							<paper-item name='viewpoint'>Top view</paper-item>
+							<paper-item name='Northwards'>North</paper-item>
+							<paper-item name='Southwards'>South</paper-item>
 							<paper-item name='leiden1'>View 1</paper-item>
 							<paper-item name='leiden2'>View 2</paper-item>
 							<paper-item name='leiden3'>View 3</paper-item>
@@ -86,43 +101,57 @@
 					<paper-dropdown-menu label="Goto">
 						<paper-listbox selected={{locationselected}} attr-for-selected="value" class="dropdown-content">
 							<template is='dom-repeat' items=[[locations]]>
-								<paper-item value=[[item.bbox]]>[[item.name]]</paper-item>
+								<paper-item value=[[item.coords]]>[[item.name]]</paper-item>
 							</template>
 						</paper-listbox>
 					</paper-dropdown-menu>
 				</div>
 				<div>
-					<paper-item>1. Tree growth</paper-item>
+					<paper-item on-click='loopDemo'>Loop</paper-item>
+					<paper-item on-click='treeDemo'>Tree growth</paper-item>
 					<!-- Vershil in grootte van bomen -->
-					<paper-item>2. Cluster trees</paper-item>
+					<paper-item on-click='lightDemo'>Moving light</paper-item>
+					<paper-item>Cluster trees</paper-item>
 					<!-- Individuele bomen vinden obv. cluster -->
-					<paper-item>3. Change detection</paper-item>
+					<paper-item>Change detection</paper-item>
 					<!-- Zichtbaar maken verschil in parkeer richting/dakopbouw in Scheveningen-->
 				</div>
 			</iron-pages>
 			
 		</div>
-		<div main><x3d-viewer 
-			 map={{map}} 
-			 headlight=[[headlight]]
-			 hour=[[hourselected]]
-			 themeconfig=[[themeconfig]]>
-			<template is='dom-repeat' items=[[layers]]>
-				<transform id=[[item.name]]></transform>
-				
-				<x3d-layer 
-					active=[[item.active]] 
-					map=[[map]]
-					on-loading='_loading'
-					on-loaded='_loaded'
-					url=[[item.url]] 
-					name=[[item.name]]
-					themeconfig=[[themeconfig]]
-					config=[[item.config]]
-					></x3d-layer>
+		<div main>
+		<paper-header-panel class="flex">
+			<paper-toolbar class="medium-tall white" justify='justified'>
+			 	<span class='title'>
+			 		<img src='../images/geodan.png' height='80px'>
+			 		<img src='../images/nlesc.png' height='80px'>
+			 		<img src='../images/CWI.png' height='80px'>
+			 		<img src='../images/commit.png' height='80px'>
+			 	</span>
+			</paper-toolbar>
+			<x3d-viewer 
+				 map={{map}} 
+				 headlight=[[headlight]]
+				 hour=[[hourselected]]
+				 themeconfig=[[themeconfig]]>
+				<template is='dom-repeat' items=[[layers]]>
+					<transform id=[[item.name]]></transform>
 					
-			</template>
-		</x3d-viewer></div>
+					<x3d-layer 
+						active=[[item.active]] 
+						map=[[map]]
+						on-loading='_loading'
+						on-loaded='_loaded'
+						url=[[item.url]] 
+						name=[[item.name]]
+						themeconfig=[[themeconfig]]
+						config=[[item.config]]
+						></x3d-layer>
+						
+				</template>
+			</x3d-viewer>
+		</paper-header-panel>
+		</div>
 	</paper-drawer-panel>
  	
  </template>
@@ -152,11 +181,15 @@ Polymer({
 		},
 		headlight: {
 			type: Boolean,
-			value: 1
+			value: false
 		},
 		hourselected: {
 			type: Number,
 			value: 8
+		},
+		map: {
+			type: Object,
+			observer: '_mapChanged'
 		},
 		layers: {
 			type: Array,
@@ -164,28 +197,22 @@ Polymer({
 				var servicepath = 'http://research.geodan.nl/service/bgt3d';
 				return [
 					/*POINTS*/
-					//{name: 'bridge',reload: true, url: './data/pc_bgt_bridge_service.php'}
 					//,{name: 'groundpoints',	reload: true, url: servicepath}
-					{name: 'rws_points',displayName: 'RWSPoints', hidden: false, active: true, url: servicepath}
-					,{name: 'treepoints_ahn3', 	displayName: 'Treecluster 2015', hidden: false, active: false, url: servicepath, config: {eps: 2.5,minpoints: 350}}
-					,{name: 'treepoints_ahn2', 	displayName: 'Treecluster 2010', hidden: false, active: false, url: servicepath, config: {eps: 2.5,minpoints: 350}}
-					,{name: 'treepoints',		displayName: 'Trees', active: false, url: servicepath}
-					//,{name: 'object',		reload: true, url: './data/bgt_objectpoints.php'}
-					//,{name: 'building',		reload: true, url: './data/bgt_buildingpoints.php'}
-					//,{name: 'ahn2objects',		reload: true, url: './data/bgt_ahn2objectpoints.php'}
+					{name: 'rwspoints',displayName: 'RWSPoints', hidden: true, active: false, url: servicepath}
+					,{name: 'treepoints_ahn3', 	displayName: 'Treecluster 2015', hidden: true, active: false, url: servicepath, config: {eps: 2.5,minpoints: 350}}
+					,{name: 'treepoints_ahn2', 	displayName: 'Treecluster 2010', hidden: true, active: false, url: servicepath, config: {eps: 2.5,minpoints: 350}}
+					,{name: 'treepoints',		displayName: 'Trees', active: true, url: servicepath}
+
 					/*VECTOR*/
-					//{name: 'nwb',		active: true, url: './data/nwb_wegvak.php'}
-					//,{name: 'roofskeleton', active: true, url: servicepath} //'./data/bgt_terrain.php'}
-					,{name: 'lights', 	displayName: 'Lampposts', active: false, url: servicepath}
-					,{name: 'scheiding',displayName: 'Walls', 	active: false, url: servicepath}
-					,{name: 'buildings',displayName: 'Buildings', active: false, url: servicepath} 
-					//,{name: 'roof', 	displayName: '', active: false, url: './data/bgt_roof.php'}
-					,{name: 'bridge',	displayName: 'Bridges', active: false, url: servicepath}
-					,{name: 'bridgepilons',	displayName: 'Bridgepilons', active: false, url: servicepath}
-					,{name: 'kade', 	displayName: 'Bank', 	active: false, url: servicepath}
-					,{name: 'steiger', 	displayName: 'Jetty', 	active: false, url: servicepath}
+					,{name: 'lights', 	displayName: 'Lampposts', active: true, url: servicepath}
+					,{name: 'scheiding',displayName: 'Walls', 	active: true, url: servicepath}
+					,{name: 'buildings',displayName: 'Buildings', active: true, url: servicepath} 
+					,{name: 'bridge',	displayName: 'Bridges', active: true, url: servicepath}
+					,{name: 'bridgepilons',	displayName: 'Bridgepilons', active: true, url: servicepath}
+					,{name: 'kade', 	displayName: 'Bank', 	active: true, url: servicepath}
+					,{name: 'steiger', 	displayName: 'Jetty', 	active: true, url: servicepath}
 					,{name: 'terrain', 	displayName: 'Terrain', active: true, url: servicepath}
-					,{name: 'roads', 	displayName: 'Roads', 	active: false, url: servicepath}
+					,{name: 'roads', 	displayName: 'Roads', 	active: true, url: servicepath}
 					,{name: 'water', 	displayName: 'Water', 	active: true, url: servicepath}
 				];
 			}
@@ -195,22 +222,23 @@ Polymer({
 			type: Array,
 			value: function(){
 				return [
-				{bbox: '122110, 486549, 122498, 486790'  ,name: 'Hortus Amsterdam'},
-				{bbox: '119966, 485839, 120455, 486143'  ,name: 'Vondelpark tunnel'},
-				{bbox: '122640, 487020, 122888, 487174'  ,name: 'Nemo'},
-				{bbox: '121980, 486706, 122228, 486860'  ,name: 'Mr visserplein'},
-				{bbox: ' 93346, 465109,  93742, 465355'  ,name: 'Spoortunnel leiden'},
-				{bbox: '122996, 486846, 123240, 486998'  ,name: 'woonboot Anne'},
-				{bbox: '188045, 428786, 188411, 429044'  ,name: 'Nijmegen (Valkhof)'},
-				{bbox: '154459, 463904, 154947, 464231'  ,name: 'Amersfoort'},
-				{bbox: '154678, 463991, 154783, 464063'  ,name: 'Amersfoort_small'},
-				{bbox: ' 93616, 463691,  93887, 463981'  ,name: 'Leiden'},
-				{bbox: ' 93468, 462610,  93667, 462735'  ,name: 'Leiden prof wijk'},
-				{bbox: ' 78657, 455471,  78828, 455679'  ,name: 'Scheveningen'},
-				{bbox: '148945, 411439, 148975, 411471'  ,name: 'Den Bosch'},
-				{bbox: ' 90870, 391146,  91346, 392412'  ,name: 'unknown'},
-				{bbox: ' 77866, 456527,	 78174, 456879'  ,name: 'Change detection'},
-				{bbox: '452000, 138200,	452200,	138400'	 ,name: 'RWS'}
+				{coords: [122110, 486549],bbox: '122110, 486549, 122498, 486790'  ,name: 'Hortus Amsterdam'},
+				{coords: [119966, 485839],bbox: '119966, 485839, 120455, 486143'  ,name: 'Vondelpark tunnel'},
+				{coords: [122640, 487020],bbox: '122640, 487020, 122888, 487174'  ,name: 'Nemo'},
+				{coords: [121980, 486706],bbox: '121980, 486706, 122228, 486860'  ,name: 'Mr visserplein'},
+				{coords: [ 93346, 465109],bbox: ' 93346, 465109,  93742, 465355'  ,name: 'Spoortunnel leiden'},
+				{coords: [122996, 486846],bbox: '122996, 486846, 123240, 486998'  ,name: 'woonboot Anne'},
+				//{coords: [188045, 428786],bbox: '188045, 428786, 188411, 429044'  ,name: 'Nijmegen (Valkhof)'},
+				//{coords: [154459, 463904],bbox: '154459, 463904, 154947, 464231'  ,name: 'Amersfoort'},
+				//{coords: [154678, 463991],bbox: '154678, 463991, 154783, 464063'  ,name: 'Amersfoort_small'},
+				{coords: [ 93616, 463691],bbox: ' 93616, 463691,  93887, 463981'  ,name: 'Leiden'},
+				{coords: [ 93468, 462610],bbox: ' 93468, 462610,  93667, 462735'  ,name: 'Leiden prof wijk'},
+				{coords: [ 78657, 455471],bbox: ' 78657, 455471,  78828, 455679'  ,name: 'Scheveningen'},
+				//{coords: [148945, 411439],bbox: '148945, 411439, 148975, 411471'  ,name: 'Den Bosch'},
+				{coords: [ 90870, 391146],bbox: ' 90870, 391146,  91346, 392412'  ,name: 'unknown'},
+				{coords: [ 77866, 456527],bbox: ' 77866, 456527,	 78174, 456879'  ,name: 'Change detection'},
+				//{coords: [138289,	451857],bbox: '138289,	451857,	138447,	452016'	 ,name: 'RWS'}
+				
 				] 
 			}
 		},
@@ -220,15 +248,15 @@ Polymer({
 				return {
 					gray: {
 					 materials: {
-						building: {diffuseColor: 'white',transparency: '0'},
-						water: {specularColor: '0.823529 0.705882 0.54902', diffuseColor: '0.9 1 1', shininess: '1'},
+						building: {diffuseColor: 'salmon',transparency: '0'},
+						water: {specularColor: 'ivory', diffuseColor: 'powderblue', shininess: '1'},
 						voetpad: {diffuseColor: 'gray'},
 						rijbaan_lokale_weg: {diffuseColor: 'gray'},
 						open_verharding:{diffuseColor: 'gray'},
-						erf:{diffuseColor: 'gray'},
-						groenvoorziening:{diffuseColor: 'green'},
-						'gemengd bos':{diffuseColor: 'green'},
-						struiken: {diffuseColor: 'green'},
+						erf:{diffuseColor: 'khaki'},
+						groenvoorziening:{diffuseColor: 'yellowgreen'},
+						'gemengd bos':{diffuseColor: 'forestgreen'},
+						struiken: {diffuseColor: 'darkgreen'},
 						dek:{diffuseColor: 'gray'},
 						pijler: {diffuseColor: 'gray'},
 						light: {emissiveColor: 'yellow', transparency: 0},
@@ -291,14 +319,8 @@ Polymer({
 	_selectedviewchanged: function(view){
 		 document.getElementById(view).setAttribute('set_bind','true');         
 	},
-	_selectedlocationchanged: function(bbox){
-		var arr = bbox.split(',');
-		this._flyTo({
-			west: arr[0],
-			south: arr[1],
-			east: arr[2],
-			north: arr[3]
-		});
+	_selectedlocationchanged: function(coords){
+		this._flyTo(coords);
 	},
 	layertoggle: function(e,d){
 		var self = this;
@@ -312,7 +334,46 @@ Polymer({
 				}
 		});
 	},
-	_flyTo: function(bbox){
+	_mapChanged: function(map){
+		this._flyTo([93716,463791]);
+	},
+	viewFunc: function(evt){
+	
+		// show viewpoint values
+		if (evt)
+		{
+			var pos = evt.position;
+			var rot = evt.orientation;
+			var mat = evt.matrix;
+		
+			var camPos = pos.x.toFixed(4)+' '+pos.y.toFixed(4)+' '+pos.z.toFixed(4);
+			var camRot = rot[0].x.toFixed(4)+' '+rot[0].y.toFixed(4)+' '+rot[0].z.toFixed(4)+' '+rot[1].toFixed(4);
+			console.log(camRot);
+			//document.getElementById("viewMat").innerHTML = "&ltViewpoint position='" + 
+															camPos + "' orientation='" + camRot + "'&gt";
+		}
+		
+		// update 2d marker also if camera changes since projection is now wrong
+		/*
+		var trans = x3d.fields.SFVec3f.parse(document.getElementById('bar').getAttribute("translation"));
+		var pos2d = runtime.calcPagePos(trans.x, trans.y, trans.z);
+		var anno = document.getElementById("anno2d");
+		
+		anno.innerHTML = "(" + pos2d[0] + ", " + pos2d[1] + ")";
+		anno.style.left = (pos2d[0]+1) + "px";
+		anno.style.top = (pos2d[1]+1) + "px";
+		*/
+	},
+	_flyTo: function(coords,r){
+		var radius = r || 200;
+		var x = coords[0];
+		var y = coords[1];
+		var bbox = {
+			west: x -radius,
+			east: x +radius,
+			south: y -radius,
+			north: y +radius
+		}
 		var map = self.map;
 		map.dim.minx = parseInt(bbox.west);
 		map.dim.maxx = parseInt(bbox.east);
@@ -324,31 +385,108 @@ Polymer({
 			d.removeTiles();//TODO make nicer
 			d.tiles = tiles;
 		});
-		var centerX = (map.dim.minx + map.dim.maxx) / 2;
-		var centerY = (map.dim.miny + map.dim.maxy) / 2;
-		map.scene.append("viewpoint")
-			.attr( "centerOfRotation", centerX + " " + centerY + " 0" )
-			.attr( "position", centerX + " " + centerY + " 550")
-			.attr( "orientation", "0 0 0 1" )
-			.attr( "zNear",30)
+		
+		map.scene.select("#viewpoint")
+			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
+			.attr( "position", coords[0] + " " + coords[1] + " 550")
 			.attr('set_bind',true);
+		map.scene.select("#Northwards")
+			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
+			.attr( "position", coords[0] + " " + (coords[1] -300) + " 20");
+		map.scene.select("#Southwards")
+			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
+			.attr( "position", coords[0] + " " + (coords[1] +300) + " 20");
+		
+		map.scene.select("#front")
+			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
+			.attr( "position", coords[0] + " " + (coords[1]) + " 20");
+		map.scene.select("#right")
+			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
+			.attr( "position", coords[0] + " " + (coords[1]) + " 20");
+		map.scene.select("#left")
+			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
+			.attr( "position", coords[0] + " " + (coords[1]) + " 20");
+		map.scene.select("#top")
+			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
+			.attr( "position", coords[0] + " " + (coords[1]) + " 20");
+			
+		document.getElementById('viewpoint').addEventListener('viewpointChanged', this.viewFunc, false);
+		
+		map.scene.select('#pointlight')
+			.attr('location',coords[0] + " " + coords[1] + " 25");
+		
+	},
+	treeDemo: function(){
+		this._flyTo([93610,463873]);
+		map.scene.select("#viewpoint")
+			.attr( "centerOfRotation", '93610 463873 25')
+			.attr( "position", '93610 463873 25')
+			.attr( "orientation", '-0.3716 0.6002 0.7083 4.1466' )
+			.attr( "zNear",30);
+		map.scene.select('#viewpoint').attr('set_bind',true);
+			
+			
+			
+	},
+	lightDemo: function(){
+		d3.select('#pointlight')
+			.transition().duration(5000)
+			.attr('location','93716 463721 25')
+			.transition().duration(5000)
+			.attr('location','93766 463721 25');
+		
+	},
+	loopDemo: function(){
+		var self = this;
+		var c = 0;
+		var d = document.querySelector('#menu');
+		d.forceNarrow = true;
+		this.headlight = false;
+		var keypoints = [{
+			viewpoint: '#viewpoint',
+			hour: 8
+		},{
+			viewpoint: '#leiden1',
+			hour: 12
+		},{
+			viewpoint: '#leiden2',
+			hour: 19
+		},{
+			viewpoint: '#leiden3',
+			hour: 0
+		}];
+		function togglelayer(name,value){
+			var l = self.layers.find(d=>d.name == name);
+			var idx = self.layers.indexOf(l);
+			self.set('layers.'+[idx]+'.active',value);
+		}
+		function switchviewpoint(){
+			if (c == keypoints.length){c=0};
+			map.scene.select(keypoints[c].viewpoint).attr('set_bind',true);
+			self.hourselected = keypoints[c].hour;
+			c++;
+			if (c==1){
+				togglelayer('treepoints',false);
+				togglelayer('treepoints_ahn2',true);
+				window.setTimeout(function(){
+					togglelayer('treepoints_ahn3',true);
+				},1000);
+			}
+			if (c==2){
+				togglelayer('treepoints_ahn2',false);
+				togglelayer('treepoints_ahn3',false);
+				togglelayer('treepoints',true);
+			}
+		}
+		window.setInterval(switchviewpoint,12000);
 	},
 	ready: function(){
 		var self = this;
 		this.addEventListener('goto-rdcoords',function(d){
       		var coords = d.detail;
-			var x = Math.round(coords[0]);
-            var y = Math.round(coords[1]);
-            var radius = 200;
-            
-            bbox = {
-            	west: x -radius,
-				east: x +radius,
-				south: y -radius,
-				north: y +radius
-			}
-            self._flyTo(bbox);
+            self._flyTo(coords);
       	  });
+      	
 	}
 });
 </script>

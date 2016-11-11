@@ -101,21 +101,23 @@ Polymer({
 		var eps = this.config?this.config.eps:0;
 		var minpoints = this.config?this.config.minpoints:0;
 		return new Promise(function(resolve, reject){
-			if (tile.data[self.name]){
-				resolve(tile.data[self.name]);
-			}
-			dsv(self.url + 
-				'?set='+self.name+
-				'&west='+bbox[0]+
-				'&east='+bbox[2]+
-				'&south='+bbox[1]+
-				'&north='+bbox[3]+ 
-				'&eps='+eps+
-				'&minpoints='+minpoints
-				,function(d){
-					resolve(d);
-				//self.tileLoaded(d);
-			});
+			window.setTimeout(function(){
+				if (tile.data[self.name]){
+					resolve(tile.data[self.name]);
+				}
+				dsv(self.url + 
+					'?set='+self.name+
+					'&west='+bbox[0]+
+					'&east='+bbox[2]+
+					'&south='+bbox[1]+
+					'&north='+bbox[3]+ 
+					'&eps='+eps+
+					'&minpoints='+minpoints
+					,function(d){
+						resolve(d);
+					//self.tileLoaded(d);
+				});
+			},Math.random() * 2000);
 		});
 	},
 	tileLoaded: function (data) {
@@ -123,35 +125,8 @@ Polymer({
     	var dragging = false;
     	//var layer = d3.select(this.$.layer);
     	var layer = d3.select('#'+this.name);
-		if (data[0] && data[0].type == 'buildingx'){
-			var cubes = layer.selectAll('.building').data(data,function(d){return d.id;});
-			var obj = cubes.enter().append('shape')
-				.classed('building',true)
-				.classed('toposhape',true)
-				.html(function(d){
-					return d.geom;
-				});
-			obj.select('shape').append('appearance').append('material').classed('material', true)
-				.attr('diffuseColor',"brown");
-		}
-		else if (data[0] && data[0].type == 'stem'){
-			var stems = layer.selectAll('.stem').data(data,function(d){return d.id;});
-			var shape = stems.enter().append('transform')
-				.classed('stem',true)
-				.classed('toposhape',true)
-				.attr('id', function(d){return 'col'+d.id;})
-				.attr('translation', function(d){
-					return d.x + ' ' + d.y + ' '+ (d.z-3);
-				})
-				.attr('rotation','1 0 0 1.5')
-				.append('shape').classed('post', true);
-			shape.append('appearance').append('material').classed('material', true)
-				.attr('diffuseColor',"brown");
-			shape.append('Cylinder')
-				.attr('height','5')
-				.attr('radius','0.3');
-		}
-		else if (data[0] && data[0].type == 'light'){
+		
+		if (data[0] && data[0].type == 'light'){
 			//<SpotLight on='TRUE' intensity='1.0000' ambientIntensity='0.0000' color='1.0000 0.9843 0.8275' direction='-0.1962 -0.9806 -0.0000' location='45.9143 50.3673 -62.9329' radius='200.0000' beamWidth='0.3226' cutOffAngle='0.7577' />
 			var lights = layer.selectAll('.light').data(data,function(d){return d.id;});
 			var shape = lights.enter().append('transform')
@@ -161,18 +136,15 @@ Polymer({
 				.attr('translation', function(d){
 					return d.x + ' ' + d.y + ' '+ d.z;
 				})
-				.append('shape');
+				.append('shape').attr('USE','light1');
+				
 			var appearance = shape.append('appearance');
 				//appearance.append('imageTexture').attr('url','flare.png');//.attr('repeatS','false').attr('repeatT','false');
 			//	appearance.append('depthMode').attr('readOnly','true');
 				appearance.append('material').classed('material', true).attr('emissiveColor',"yellow");
 				
-			//shape.append('PointSet').append('Coordinate')
-			//	.attr('point',function(d){
-			//		return d.x + ' ' + d.y + ' '+ d.z;
-			//	});
 			shape.append('box')
-				//.attr('radius',5)
+				//.attr('radius',3)
 				.attr('size','0.3 0.3 0.1');
 			
 			var shape = lights.enter().append('transform')
@@ -187,13 +159,13 @@ Polymer({
 			shape.append('appearance').append('material').classed('material', true)
 				.attr('diffuseColor',"red");
 			shape.append('Cylinder')
-				.attr('height','5')
+				.attr('height','4')
 				.attr('radius','0.1');
-				/*
+				/* This will kill your performance
 			var shape = lights.enter().append('pointlight')
-				.attr('radius',10).attr('intensity',0.5)
-				.attr('ambientIntensity',0)
-				.attr('
+				.attr('radius',6).attr('intensity',0.5)
+				.attr('ambientIntensity',0.5)
+				.attr('zFar',0.1)
 				.attr('location',d=>d.x + ' ' + d.y + ' '+ d.z);
 				*/
 		    //lights.exit().remove();
@@ -201,35 +173,6 @@ Polymer({
 		    //data.forEach(function(d){console.log('<pointlight location='+d.x + ' ' + d.y + ' '+ d.z+'>');});
 		    
 		}
-		else if (data[0] && data[0].type == 'denbosch'){
-			var points = layer.selectAll('.pointset').data(data,function(d){return d.id;});
-			var shape = points.enter().append('shape')
-				.classed('pointset', true)
-				.attr('id', function(d){return d.id;});
-			shape.html(function(d){
-				return d.geom;
-			});
-			
-		}
-		/*
-		if (data[0] && data[0].type == 'tree'){
-			var points = this.scene.selectAll('.pointset').data(data,function(d){return d.id;});
-			var shape = points.enter().append('transform')
-				.classed('pointset', true)
-				.classed('toposhape',true)
-				.attr('id', function(d){return d.id;})
-				.attr('translation', function(d){
-					return d.x + ' ' + d.y + ' '+ d.z;
-				})
-				.append('shape');
-				var appearance = shape.append('Appearance');
-				appearance.append('Material').classed('material', true).attr('emissiveColor',"1 0 0");
-				shape.append('PointSet').append('Coordinate')
-					.attr('point',function(d){
-						return d.x + ' ' + d.y + ' '+ d.z;
-					});
-				
-		}*/
 		else if (data[0] && data[0].geom){
             var shapes = layer.selectAll('shape .toposhape').data(data, function(d){return d.id;});
             var newshape = shapes.enter()

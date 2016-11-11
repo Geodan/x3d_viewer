@@ -16,7 +16,7 @@ pointcloud_unclassified AS(
 
 points AS (
 	SELECT a.ogc_fid id, a.wkb_geometry geom 
-	FROM bgt_import2.paal_2dactueelbestaand a, bounds b 
+	FROM bgt.paal_2dactueelbestaand a, bounds b 
 	WHERE (plus_type = 'lichtmast' OR plus_type Is Null)
 	AND ST_Intersects(a.wkb_geometry, b.geom)
 ),
