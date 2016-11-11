@@ -17,7 +17,7 @@ points AS (
 points_filtered AS (
 	SELECT pt 
 	FROM points
-	WHERE random() < 0.01
+	WHERE random() < 0.3
 )
 SELECT nextval('counter') as id, 'tree' as type, 'white' as color, ST_AsX3D(ST_Collect(Geometry(pt))) geom
 FROM points_filtered a;

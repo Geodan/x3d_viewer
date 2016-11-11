@@ -105,7 +105,7 @@ Polymer({
 				if (tile.data[self.name]){
 					resolve(tile.data[self.name]);
 				}
-				dsv(self.url + 
+				d3.csv(self.url + 
 					'?set='+self.name+
 					'&west='+bbox[0]+
 					'&east='+bbox[2]+
@@ -182,26 +182,9 @@ Polymer({
                 .classed('toposhape', true)
                 
                 .attr('id',function(d){return d.id;})
-                //.on('click',function(d){
-                //	if (d.type = 'building'){
-                //		var e = this.getElementsByTagName('material')[0];
-                //		if (!d.selected) {
-                //			d.selected = true;
-                //			e.transparency = 0.7;
-                //		}
-                //		else{
-                //			d.selected = false;
-                //			e.transparency = 0;
-                //		}
-                //	}
-                //	
-                //})
                 .on('mouseover', function(d){
                     if (d.type == 'building'){
                         var html = d.label || d.type;
-                        
-                        //e.specularColor = 'red';
-                        //d3.select(this).select('Material').attr('diffuseColor', 'red');
                     }
                     else {
                     	var html = d.label || d.type;
@@ -217,9 +200,6 @@ Polymer({
                             .html(html);
                         d.oldcolor = d3.select(this).select('.material').attr('emissiveColor');
                         d3.select(this).select('.material').attr('emissiveColor', 'red');
-                        //var e = this.getElementsByTagName('material')[0];
-                        //d.oldcolor = e.diffuseColor;
-                        //e.diffuseColor = 'red';
                     }
                 })
                 .on('mousedown', function(d){
@@ -231,14 +211,11 @@ Polymer({
                 })
                 .on('mouseout', function(d){
                     d3.selectAll('.popup').remove();
-                    //var e = this.getElementsByTagName('material')[0];
-                    //e.diffuseColor = d.oldcolor;
                     d3.select(this).select('.material').attr('emissiveColor', d.oldcolor);
-                    //d3.select(this).select('Material').attr('diffuseColor', 'red');
                 })                 
                 .html(function(d){
                     if (d.geom && d.geom.indexOf('IndexedFaceSet') >  0){
-                        d.geom = d.geom.replace('IndexedFaceSet', 'IndexedFaceSet creaseangle="3.14" solid="false" ');
+                        d.geom = d.geom.replace('IndexedFaceSet', 'IndexedFaceSet creaseAngle="3.14" solid="false" normalPerVertex="false"');
                     }
                     return d.geom;
                 });
@@ -263,6 +240,14 @@ Polymer({
 				}
             });
         }
+        else if (data[0] && data[0].x){
+        	var shape = layer.append('Shape');
+        	var appearance = shape.append('Appearance');
+			appearance.append('Material').classed('material', true).attr('emissiveColor',"1 0 0");
+			var string = data.map(d=>[d.x,d.y,d.z]).join(" ").replace(/,/g," ");
+			shape.append('PointSet').append('Coordinate').attr('point',string);
+
+		}
     }
 });
 </script>

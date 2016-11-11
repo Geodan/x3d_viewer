@@ -25,12 +25,15 @@ var sets = {
 	groundpoints: { file: 'bgt_groundpoints.sql', sql: '' },
 	lights: { file : 'bgt_lights.sql', sql : '' }
 }; 
+var header = fs.readFileSync('header.x3d').toString();
+var footer = fs.readFileSync('footer.x3d').toString();
+
 for( var s in sets ) { 
 	sets [ s ].sql = fs.readFileSync( sets [ s ].file ).toString( ); 
 };
 app.use( cors( )); 
 app.use(compress());  
-app.get( '/bgt3d', function( req, res ) { 
+app.get( '/geodan3d', function( req, res ) { 
 		var north = req.query [ 'north' ]; 
 		var south = req.query [ 'south' ]; 
 		var west = req.query [ 'west' ]; 
@@ -39,7 +42,7 @@ app.get( '/bgt3d', function( req, res ) {
 		var eps = req.query [ 'eps' ] || 3;
 		var minpoints = req.query [ 'minpoints' ] || 350;
 		
-		if (!north || !south || !west || !east || !set){
+		if (!set){
 			res.send('Missing parameter');
 			console.log('Missing parameter');
 		}
@@ -76,18 +79,14 @@ app.get( '/bgt3d', function( req, res ) {
 							if( err ) { 
 								console.warn( err, querystring );
 							} 
-							//console.log(querystring);
-							var resultstring = '';
-							for (var key in result.rows[0]){
-								resultstring += key + ','
-							}
-							resultstring += "\n"; 
+							var resultstring = header;
 							result.rows.forEach( function( row ) {
-									for (var key in row){
-										resultstring += row[key] + ',' 
-									}
-									resultstring += '\n';
+									resultstring += '<shape render="true" bboxcenter="0,0,0" bboxsize="-1,-1,-1" ispickable="true" class="'+row.type+'" id="586316">';
+									resultstring += row.geom; 
+									resultstring += '<appearance sorttype="auto" alphaclipthreshold="0.1"><twosidedmaterial ambientintensity="0.2" diffusecolor="salmon" emissivecolor="0,0,0" shininess="0.2" specularcolor="0,0,0" backambientintensity="0.2" backdiffusecolor="0.8,0.8,0.8" backemissivecolor="0,0,0" backshininess="0.2" backspecularcolor="0,0,0" class="material" transparency="0"></twosidedmaterial></appearance>';
+									resultstring += '</shape>';
 							} );
+							resultstring += footer;
 							res.set( "Content-Type", 'text/plain' );
 							res.send(resultstring);
 							/*
@@ -103,6 +102,6 @@ app.get( '/bgt3d', function( req, res ) {
 app.get( '/', function( req, res ) { 
 		res.send( 'Nothing to see here, move on!' ); 
 } );
-app.listen( 8081, function( ) { 
-		console.log( 'BGT X3D service listening on port 8081' ); 
+app.listen( 8082, function( ) { 
+		console.log( 'Geodan X3D service listening on port 8082' ); 
 } ); 
