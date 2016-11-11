@@ -6,12 +6,12 @@ bounds AS (
 plantcover AS (
 	SELECT ogc_fid, 'plantcover'::text AS class, bgt_fysiekvoorkomen as type, St_Intersection(wkb_geometry, geom) geom 
 	FROM bgt.begroeidterreindeel_2dactueelbestaand, bounds
-	WHERE eindregistratie Is Null AND ST_Intersects(geom, wkb_geometry) AND ST_GeometryType(wkb_geometry) = 'ST_Polygon'
+	WHERE ST_Intersects(geom, wkb_geometry) AND ST_GeometryType(wkb_geometry) = 'ST_Polygon'
 ),
 bare AS (
 	SELECT ogc_fid, 'bare'::text AS class, bgt_fysiekVoorkomen as type, St_Intersection(wkb_geometry, geom) geom
 	FROM bgt.onbegroeidterreindeel_2dactueelbestaand, bounds
-	WHERE eindregistratie Is Null AND ST_Intersects(geom, wkb_geometry) AND ST_GeometryType(wkb_geometry) = 'ST_Polygon'
+	WHERE AND ST_Intersects(geom, wkb_geometry) AND ST_GeometryType(wkb_geometry) = 'ST_Polygon'
 ),
 pointcloud_ground AS (
 	SELECT PC_FilterEquals(pa,'classification',2) pa 

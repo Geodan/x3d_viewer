@@ -1,54 +1,31 @@
 WITH 
 bounds AS (
 	SELECT ST_MakeEnvelope(_west, _south, _east, _north, 28992) geom
-),
-pointcloud_ground AS (
+)
+,kades AS (
+	SELECT ogc_fid, 'kade'::text AS class, 'kade'::text as type, St_Intersection(wkb_geometry, geom) geom 
+	FROM bgt.scheiding_2dactueelbestaand, bounds
+	WHERE (bgt_type = 'kademuur') AND ST_Intersects(geom, wkb_geometry) AND ST_GeometryType(wkb_geometry) = 'ST_Polygon'
+)
+,pointcloud_ground AS (
 	SELECT PC_FilterEquals(pa,'classification',2) pa --ground points 
 	FROM ahn3_pointcloud.vw_ahn3, bounds 
 	WHERE ST_DWithin(geom, Geometry(pa),10)
 ),
-pointcloud_all AS (
-	SELECT pa pa --all points 
-	FROM ahn3_pointcloud.vw_ahn3, bounds 
-	WHERE ST_DWithin(geom, Geometry(pa),10)
-),
-footprints AS (
-	SELECT ST_Force3D(ST_Intersection(a.wkb_geometry, b.geom)) geom,
-	a.ogc_fid id
-	FROM bgt.scheiding_2dactueelbestaand a, bounds b
-	WHERE 1 = 1
-	AND (bgt_type = 'kademuur') 
-	AND ST_Intersects(a.wkb_geometry, b.geom)
-),
-papoints AS ( --get points from intersecting patches
-	SELECT 
-		a.id,
-		PC_Explode(b.pa) pt,
-		geom footprint
-	FROM footprints a
-	LEFT JOIN pointcloud_ground b ON (ST_Intersects(a.geom, geometry(b.pa)))
-),
-papatch AS (
-	SELECT
-		a.id, PC_PatchMin(PC_Union(pa), 'z') min
-	FROM footprints a
-	LEFT JOIN pointcloud_all b ON (ST_Intersects(a.geom, geometry(b.pa)))
-	GROUP BY a.id
-),
-footprintpatch AS ( --get only points that fall inside building, patch them
-	SELECT id, PC_Patch(pt) pa, footprint
-	FROM papoints WHERE ST_Intersects(footprint, Geometry(pt))
-	GROUP BY id, footprint
-),
-stats AS (
-	SELECT  a.id, footprint, 
-		PC_PatchAvg(pa, 'z') max,
-		min
-	FROM footprintpatch a, papatch b
-	WHERE (a.id = b.id)
-),
 polygons AS (
-	SELECT id, ST_Extrude(ST_Tesselate(ST_Translate(footprint,0,0, min)), 0,0,max-min) geom FROM stats
+	SELECT nextval('counter') id, ogc_fid fid, COALESCE(type,'transitie') as type, class,(ST_Dump(geom)).geom
+	FROM kades
+)
+,polygonsz AS (
+	SELECT id, fid, type, class, patch_to_geom(PC_Union(b.pa), geom) geom
+	FROM polygons a 
+	LEFT JOIN pointcloud_ground b
+	ON ST_Intersects(geom,Geometry(b.pa))
+	GROUP BY id, fid, type, class, geom
+)
+,extruded AS (
+	SELECT id, fid, type, class, (ST_Extrude(ST_Triangulate2dZ(geom), 0 ,0, -10)) geom
+	FROM polygonsz
 )
 SELECT id,'kade' as type, 'grey' color, ST_AsX3D(p.geom) geom
-FROM polygons p
+FROM extruded p;
