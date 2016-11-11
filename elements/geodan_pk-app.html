@@ -19,10 +19,10 @@
 
 <link rel="import" href="../bower_components/gm-elements/gm-geosearch.html">
 
-<link rel="import" href="../bower_components/x3d-elements/x3d-viewer.html">
+<link rel="import" href="x3d-viewer.html">
 
 
-<dom-module id="main-app">
+<dom-module id="geodan_pk-app">
 <style include="iron-flex iron-flex-alignment"></style> 
 <style>
  paper-item {
@@ -120,15 +120,7 @@
 			
 		</div>
 		<div main>
-		<paper-header-panel class="flex">
-			<paper-toolbar class="medium-tall white" justify='justified'>
-			 	<span class='title'>
-			 		<img src='../images/geodan.png' height='80px'>
-			 		<img src='../images/nlesc.png' height='80px'>
-			 		<img src='../images/CWI.png' height='80px'>
-			 		<img src='../images/commit.png' height='80px'>
-			 	</span>
-			</paper-toolbar>
+		
 			<x3d-viewer 
 				 map={{map}} 
 				 headlight=[[headlight]]
@@ -150,7 +142,6 @@
 						
 				</template>
 			</x3d-viewer>
-		</paper-header-panel>
 		</div>
 	</paper-drawer-panel>
  	
@@ -160,7 +151,7 @@
 <script>
 
 Polymer({
-	is: 'main-app',
+	is: 'geodan_pk-app',
 	properties: {
 		tabselected: {
 			type: Number,
@@ -181,11 +172,11 @@ Polymer({
 		},
 		headlight: {
 			type: Boolean,
-			value: false
+			value: 0
 		},
 		hourselected: {
 			type: Number,
-			value: 8
+			value: 12
 		},
 		map: {
 			type: Object,
@@ -197,22 +188,18 @@ Polymer({
 				var servicepath = 'http://research.geodan.nl/service/bgt3d';
 				return [
 					/*POINTS*/
-					//,{name: 'groundpoints',	reload: true, url: servicepath}
-					{name: 'rwspoints',displayName: 'RWSPoints', hidden: false, active: false, url: './data/rws_pc_service.php?density=0.01'}
-					//,name: 'rwspoints',displayName: 'RWSPoints', hidden: false, active: false, url: servicepath}
-					,{name: 'treepoints_ahn3', 	displayName: 'Treecluster 2015', hidden: true, active: false, url: servicepath, config: {eps: 2.5,minpoints: 350}}
-					,{name: 'treepoints_ahn2', 	displayName: 'Treecluster 2010', hidden: true, active: false, url: servicepath, config: {eps: 2.5,minpoints: 350}}
-					,{name: 'treepoints',		displayName: 'Trees', active: true, url: servicepath}
+					{name: 'geodan_pk',		displayName: 'PK', active: true, url: servicepath}
+					,{name: 'treepoints',		displayName: 'Trees', active: false, url: servicepath}
 					/*VECTOR*/
 					,{name: 'lights', 	displayName: 'Lampposts', active: false, url: servicepath}
-					,{name: 'scheiding',displayName: 'Walls', 	active: true, url: servicepath}
-					,{name: 'buildings',displayName: 'Buildings', active: true, url: servicepath} 
-					,{name: 'bridge',	displayName: 'Bridges', active: true, url: servicepath}
-					,{name: 'bridgepilons',	displayName: 'Bridgepilons', active: true, url: servicepath}
-					,{name: 'kade', 	displayName: 'Bank', 	active: true, url: servicepath}
-					,{name: 'steiger', 	displayName: 'Jetty', 	active: true, url: servicepath}
-					,{name: 'terrain', 	displayName: 'Terrain', active: true, url: servicepath}
-					,{name: 'roads', 	displayName: 'Roads', 	active: true, url: servicepath}
+					,{name: 'scheiding',displayName: 'Walls', 	active: false, url: servicepath}
+					,{name: 'buildings',displayName: 'Buildings', active: false, url: servicepath} 
+					,{name: 'bridge',	displayName: 'Bridges', active: false, url: servicepath}
+					,{name: 'bridgepilons',	displayName: 'Bridgepilons', active: false, url: servicepath}
+					,{name: 'kade', 	displayName: 'Bank', 	active: false, url: servicepath}
+					,{name: 'steiger', 	displayName: 'Jetty', 	active: false, url: servicepath}
+					,{name: 'terrain', 	displayName: 'Terrain', active: false, url: servicepath}
+					,{name: 'roads', 	displayName: 'Roads', 	active: false, url: servicepath}
 					,{name: 'water', 	displayName: 'Water', 	active: true, url: servicepath}
 				];
 			}
@@ -249,6 +236,9 @@ Polymer({
 				return {
 					gray: {
 					 materials: {
+					 	floor: {diffuseColor: 'salmon',transparency: '0'},
+						wall: {diffuseColor: 'ivory',transparency: '0.5'},
+						 
 					 	geodan_pk: {diffuseColor: 'white',transparency: '0.3'},
 						building: {diffuseColor: 'salmon',transparency: '0'},
 						water: {specularColor: 'ivory', diffuseColor: 'powderblue', shininess: '1'},
@@ -337,7 +327,12 @@ Polymer({
 		});
 	},
 	_mapChanged: function(map){
-		this._flyTo([93616, 463691]); //default leiden
+		this._flyTo([122689, 483927]);
+		map.scene.select("#viewpoint").attr('zNear',1)
+			.attr('centerOfRotation','122689,483926 12')
+			.attr('position','122738 483932 25')
+			.attr('orientation','0.5059 0.4662 0.7257 1.9445');
+		map.scene.select("navInfo").attr('speed',0.001).attr('transitionTime','1.0');
 	},
 	viewFunc: function(evt){
 	
@@ -350,7 +345,8 @@ Polymer({
 		
 			var camPos = pos.x.toFixed(4)+' '+pos.y.toFixed(4)+' '+pos.z.toFixed(4);
 			var camRot = rot[0].x.toFixed(4)+' '+rot[0].y.toFixed(4)+' '+rot[0].z.toFixed(4)+' '+rot[1].toFixed(4);
-			console.log(camRot);
+			//console.log('pos',camPos);
+			//console.log('rot',camRot);
 			//document.getElementById("viewMat").innerHTML = "&ltViewpoint position='" + 
 															camPos + "' orientation='" + camRot + "'&gt";
 		}
