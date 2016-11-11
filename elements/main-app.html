@@ -46,7 +46,7 @@
 		<div drawer>
 			<paper-toolbar class="medium-tall">
 			<div class="title">X3D viewer</div>
-			<paper-tabs  class="bottom" selected={{tabselected}}>
+			<paper-tabs  class="bottom" selected="{{tabselected}}">
 				<paper-tab>Layers</paper-tab>
 				<paper-tab>Scene</paper-tab>
 				<paper-tab>Demos</paper-tab>
@@ -123,10 +123,13 @@
 		<paper-header-panel class="flex">
 			<paper-toolbar class="medium-tall white" justify='justified'>
 			 	<span class='title'>
+			 	
 			 		<img src='../images/geodan.png' height='80px'>
+			 		<!--
 			 		<img src='../images/nlesc.png' height='80px'>
 			 		<img src='../images/CWI.png' height='80px'>
 			 		<img src='../images/commit.png' height='80px'>
+			 		-->
 			 	</span>
 			</paper-toolbar>
 			<x3d-viewer 
@@ -251,6 +254,7 @@ Polymer({
 				return {
 					gray: {
 					 materials: {
+					 	tree: { emissiveColor: 'darkolivegreen'},
 					 	geodan_pk: {diffuseColor: 'white',transparency: '0.3'},
 						building: {diffuseColor: 'salmon',transparency: '0'},
 						water: {specularColor: 'ivory', diffuseColor: 'powderblue', shininess: '1'},
@@ -352,7 +356,7 @@ Polymer({
 		
 			var camPos = pos.x.toFixed(4)+' '+pos.y.toFixed(4)+' '+pos.z.toFixed(4);
 			var camRot = rot[0].x.toFixed(4)+' '+rot[0].y.toFixed(4)+' '+rot[0].z.toFixed(4)+' '+rot[1].toFixed(4);
-			console.log(camRot);
+			//console.log(camRot);
 			//document.getElementById("viewMat").innerHTML = "&ltViewpoint position='" + 
 															camPos + "' orientation='" + camRot + "'&gt";
 		}

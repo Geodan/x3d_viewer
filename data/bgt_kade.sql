@@ -23,9 +23,28 @@ polygons AS (
 	ON ST_Intersects(geom,Geometry(b.pa))
 	GROUP BY id, fid, type, class, geom
 )
+,triangles AS (
+	SELECT 
+		id,
+		ST_MakePolygon(
+			ST_ExteriorRing(
+				(ST_Dump(ST_Triangulate2DZ(a.geom))).geom
+			)
+		)geom
+	FROM polygonsz a
+)
+,assign_triags AS (
+	SELECT 	a.*, b.type, b.class
+	FROM triangles a
+	INNER JOIN polygons b
+	ON ST_Contains(b.geom, a.geom)
+	,bounds c
+	WHERE ST_Intersects(ST_Centroid(b.geom), c.geom)
+	AND a.id = b.id
+)
 ,extruded AS (
-	SELECT id, fid, type, class, (ST_Extrude(ST_Triangulate2dZ(geom), 0 ,0, -10)) geom
-	FROM polygonsz
+	SELECT id, type, class, ST_Extrude(geom, 0 ,0, -4) geom
+	FROM assign_triags
 )
 SELECT id,'kade' as type, 'grey' color, ST_AsX3D(p.geom) geom
 FROM extruded p;

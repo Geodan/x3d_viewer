@@ -11,7 +11,7 @@ plantcover AS (
 bare AS (
 	SELECT ogc_fid, 'bare'::text AS class, bgt_fysiekVoorkomen as type, St_Intersection(wkb_geometry, geom) geom
 	FROM bgt.onbegroeidterreindeel_2dactueelbestaand, bounds
-	WHERE AND ST_Intersects(geom, wkb_geometry) AND ST_GeometryType(wkb_geometry) = 'ST_Polygon'
+	WHERE ST_Intersects(geom, wkb_geometry) AND ST_GeometryType(wkb_geometry) = 'ST_Polygon'
 ),
 pointcloud_ground AS (
 	SELECT PC_FilterEquals(pa,'classification',2) pa 
