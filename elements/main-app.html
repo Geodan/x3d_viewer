@@ -46,7 +46,7 @@
 		<div drawer>
 			<paper-toolbar class="medium-tall">
 			<div class="title">X3D viewer</div>
-			<paper-tabs  class="bottom" selected={{tabselected}}>
+			<paper-tabs  class="bottom" selected="{{tabselected}}">
 				<paper-tab>Layers</paper-tab>
 				<paper-tab>Scene</paper-tab>
 				<paper-tab>Demos</paper-tab>
@@ -123,10 +123,13 @@
 		<paper-header-panel class="flex">
 			<paper-toolbar class="medium-tall white" justify='justified'>
 			 	<span class='title'>
+			 	
 			 		<img src='../images/geodan.png' height='80px'>
+			 		<!--
 			 		<img src='../images/nlesc.png' height='80px'>
 			 		<img src='../images/CWI.png' height='80px'>
 			 		<img src='../images/commit.png' height='80px'>
+			 		-->
 			 	</span>
 			</paper-toolbar>
 			<x3d-viewer 
@@ -194,7 +197,8 @@ Polymer({
 		layers: {
 			type: Array,
 			value: function(){
-				var servicepath = 'http://research.geodan.nl/service/bgt3d';
+				//var servicepath = 'http://research.geodan.nl/service/bgt3d';
+				var servicepath = 'http://localhost:8081/bgt3d';
 				return [
 					/*POINTS*/
 					//,{name: 'groundpoints',	reload: true, url: servicepath}
@@ -202,18 +206,18 @@ Polymer({
 					//,name: 'rwspoints',displayName: 'RWSPoints', hidden: false, active: false, url: servicepath}
 					,{name: 'treepoints_ahn3', 	displayName: 'Treecluster 2015', hidden: true, active: false, url: servicepath, config: {eps: 2.5,minpoints: 350}}
 					,{name: 'treepoints_ahn2', 	displayName: 'Treecluster 2010', hidden: true, active: false, url: servicepath, config: {eps: 2.5,minpoints: 350}}
-					,{name: 'treepoints',		displayName: 'Trees', active: true, url: servicepath}
+					,{name: 'treepoints',		displayName: 'Trees', active: false, url: servicepath}
 
 					/*VECTOR*/
 					,{name: 'lights', 	displayName: 'Lampposts', active: false, url: servicepath}
-					,{name: 'scheiding',displayName: 'Walls', 	active: true, url: servicepath}
-					,{name: 'buildings',displayName: 'Buildings', active: true, url: servicepath} 
-					,{name: 'bridge',	displayName: 'Bridges', active: true, url: servicepath}
+					,{name: 'scheiding',displayName: 'Walls', 	active: false, url: servicepath}
+					,{name: 'buildings',displayName: 'Buildings', active: false, url: servicepath} 
+					,{name: 'bridge',	displayName: 'Bridges', active: false, url: servicepath}
 					,{name: 'bridgepilons',	displayName: 'Bridgepilons', active: true, url: servicepath}
 					,{name: 'kade', 	displayName: 'Bank', 	active: true, url: servicepath}
-					,{name: 'steiger', 	displayName: 'Jetty', 	active: true, url: servicepath}
-					,{name: 'terrain', 	displayName: 'Terrain', active: true, url: servicepath}
-					,{name: 'roads', 	displayName: 'Roads', 	active: true, url: servicepath}
+					,{name: 'steiger', 	displayName: 'Jetty', 	active: false, url: servicepath}
+					,{name: 'terrain', 	displayName: 'Terrain', active: false, url: servicepath}
+					,{name: 'roads', 	displayName: 'Roads', 	active: false, url: servicepath}
 					,{name: 'water', 	displayName: 'Water', 	active: true, url: servicepath}
 					,{name: '3dfied',   displayName: 'Adam 3dfied', active: true, url: servicepath}
 				];
@@ -251,6 +255,7 @@ Polymer({
 				return {
 					gray: {
 					 materials: {
+					 	tree: { emissiveColor: 'darkolivegreen'},
 					 	geodan_pk: {diffuseColor: 'white',transparency: '0.3'},
 						building: {diffuseColor: 'salmon',transparency: '0'},
 						water: {specularColor: 'ivory', diffuseColor: 'powderblue', shininess: '1'},
@@ -352,7 +357,7 @@ Polymer({
 		
 			var camPos = pos.x.toFixed(4)+' '+pos.y.toFixed(4)+' '+pos.z.toFixed(4);
 			var camRot = rot[0].x.toFixed(4)+' '+rot[0].y.toFixed(4)+' '+rot[0].z.toFixed(4)+' '+rot[1].toFixed(4);
-			console.log(camRot);
+			//console.log(camRot);
 			//document.getElementById("viewMat").innerHTML = "&ltViewpoint position='" + 
 															camPos + "' orientation='" + camRot + "'&gt";
 		}
