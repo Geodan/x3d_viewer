@@ -26,5 +26,8 @@
     "paper-elements": "^1",
     "iron-elements": "^1",
     "gm-elements": "GeodanElements/gm-elements#master"
+  },
+  "resolutions": {
+    "d3": "^4.2.7"
   }
 }
