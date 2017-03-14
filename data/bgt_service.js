@@ -24,7 +24,13 @@ var sets = {
 	treepoints_ahn2: { file : 'bgt_ahn2_treepoints.sql', sql : '' },
 	groundpoints: { file: 'bgt_groundpoints.sql', sql: '' },
 	lights: { file : 'bgt_lights.sql', sql : '' },
-	3dfied: { file : 'adam3dfied_buildings.sql', sql : '' }
+	adam3dfied_BuildingPart: { file : 'adam3dfied_BuildingPart.sql', sql : '' },
+	adam3dfied_Waterdeel: { file : 'adam3dfied_Waterdeel.sql', sql : '' },
+	adam3dfied_OnbegroeidTerreindeel: { file : 'adam3dfied_OnbegroeidTerreindeel.sql', sql : '' },
+	adam3dfied_TrafficArea: { file : 'adam3dfied_TrafficArea.sql', sql : '' },
+	adam3dfied_PlantCover: { file : 'adam3dfied_PlantCover.sql', sql : '' },
+	adam3dfied_Scheiding: { file : 'adam3dfied_Scheiding.sql', sql : '' },
+	adam3dfied_BridgeConstructionElement: { file : 'adam3dfied_BridgeConstructionElement.sql', sql : '' }
 }; 
 for( var s in sets ) { 
 	sets [ s ].sql = fs.readFileSync( sets [ s ].file ).toString( ); 
