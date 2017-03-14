@@ -213,13 +213,13 @@ Polymer({
 					,{name: 'scheiding',displayName: 'Walls', 	active: false, url: servicepath}
 					,{name: 'buildings',displayName: 'Buildings', active: false, url: servicepath} 
 					,{name: 'bridge',	displayName: 'Bridges', active: false, url: servicepath}
-					,{name: 'bridgepilons',	displayName: 'Bridgepilons', active: true, url: servicepath}
-					,{name: 'kade', 	displayName: 'Bank', 	active: true, url: servicepath}
+					,{name: 'bridgepilons',	displayName: 'Bridgepilons', active: false, url: servicepath}
+					,{name: 'kade', 	displayName: 'Bank', 	active: false, url: servicepath}
 					,{name: 'steiger', 	displayName: 'Jetty', 	active: false, url: servicepath}
 					,{name: 'terrain', 	displayName: 'Terrain', active: false, url: servicepath}
 					,{name: 'roads', 	displayName: 'Roads', 	active: false, url: servicepath}
 					,{name: 'water', 	displayName: 'Water', 	active: true, url: servicepath}
-					,{name: '3dfied',   displayName: 'Adam 3dfied', active: true, url: servicepath}
+					,{name: 'fromtopo',   displayName: '3D topo', active: true, url: servicepath}
 				];
 			}
 			
@@ -271,6 +271,7 @@ Polymer({
 						light: {emissiveColor: 'yellow', transparency: 0},
 						post: {diffuseColor: 'gray'},
 						roof: {diffuseColor: 'orange'},
+						pand: {diffuseColor: 'orange'},
 						scene: {skyColor: '0.4 0.6 0.8'},
 					 }
 					},

@@ -24,7 +24,7 @@ var sets = {
 	treepoints_ahn2: { file : 'bgt_ahn2_treepoints.sql', sql : '' },
 	groundpoints: { file: 'bgt_groundpoints.sql', sql: '' },
 	lights: { file : 'bgt_lights.sql', sql : '' },
-	3dfied: { file : 'adam3dfied_buildings.sql', sql : '' }
+	fromtopo: { file : 'bgt_fromtopo.sql', sql : '' }
 }; 
 for( var s in sets ) { 
 	sets [ s ].sql = fs.readFileSync( sets [ s ].file ).toString( ); 
