@@ -7,15 +7,15 @@ pointcloud_building AS (
 			PC_FilterEquals(
 				PC_FilterEquals(pa,'classification',1),
 			'NumberOfReturns',1),
-		'Intensity',150) pa  
+		'Intensity',150) pa  --take out trees with nreturns ands intensity
 	FROM ahn3_pointcloud.vw_ahn3, bounds 
 	WHERE ST_DWithin(geom, Geometry(pa),10) --patches should be INSIDE bounds
 ),
 footprints AS (
 	SELECT a.ogc_fid id, a.ogc_fid, 'border' AS class, a.bgt_type as type, 
 	ST_Force3D(ST_CurveToLine(a.wkb_geometry)) geom
-	FROM bgt_import2.scheiding_2dactueelbestaand a
-	LEFT JOIN bgt_import2.overbruggingsdeel_2dactueelbestaand b 
+	FROM bgt.scheiding_2dactueelbestaand a
+	LEFT JOIN bgt.overbruggingsdeel_2dactueelbestaand b 
 	ON St_Intersects((a.wkb_geometry), (b.wkb_geometry)) AND St_Contains(ST_buffer((b.wkb_geometry),1), (a.wkb_geometry))
 	,bounds c
 	WHERE a.relatieveHoogteligging > -1

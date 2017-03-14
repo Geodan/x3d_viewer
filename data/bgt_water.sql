@@ -7,54 +7,53 @@ pointcloud_water AS (
 	FROM ahn3_pointcloud.vw_ahn3, bounds 
 	WHERE ST_Intersects(geom, Geometry(pa)) --patches should be INSIDE bounds
 ),
-terrain AS (
-	SELECT nextval('counter') id, ogc_fid fid, bgt_type as type, 'water'::text AS class,
-	  (ST_Dump(
-		ST_Intersection(a.wkb_geometry, b.geom)
-	  )).geom
-	FROM bgt_import2.waterdeel_2dactueelbestaand a, bounds b
+polygons AS (
+	SELECT nextval('counter') id, bgt_type as type, 'water'::text AS class,
+	  (ST_Dump(ST_Union(
+		 a.wkb_geometry -- doing intersection later so we can find better average height
+	  ))).geom
+	FROM bgt.waterdeel_2dactueelbestaand a, bounds b
 	WHERE ST_Intersects(a.wkb_geometry, b.geom)
-)
-,polygons AS (
-	SELECT * FROM terrain
-	WHERE ST_GeometryType(geom) = 'ST_Polygon'
+	GROUP BY bgt_type
 )
 ,polygonsz AS ( 
-	SELECT a.id, a.fid, a.type, a.class, 
-	--ST_Translate(ST_Force3D(a.geom), 0,0,COALESCE(min(PC_PatchMin(b.pa,'z')),0)) geom
-	ST_Translate(ST_Force3D(a.geom), 0,0,0) geom --fixed level
+	SELECT a.id, a.type, a.class, 
+	ST_Translate(
+		ST_Force3D(a.geom), 
+		0,0,
+		COALESCE(min(
+			PC_PatchMin(
+				PC_FilterEquals(pa,'classification',9)
+				,'z')
+			)
+		,0)
+	) geom
 	FROM polygons a
-	/*
-	LEFT JOIN pointcloud_water b
+	LEFT JOIN ahn3_pointcloud.vw_ahn3 b
 	ON ST_Intersects(
 		a.geom,
 		geometry(pa)
-	)*/
-	GROUP BY a.id, a.fid, a.type, a.class, a.geom
-)
-,basepoints AS (
-	SELECT id,geom FROM polygonsz
-	WHERE ST_IsValid(geom)
+	)
+	GROUP BY a.id, a.type, a.class, a.geom
 )
 ,triangles AS (
 	SELECT 
 		id,
 		ST_MakePolygon(
 			ST_ExteriorRing(
-				(ST_Dump(ST_Triangulate2DZ(ST_Collect(a.geom)))).geom
+				(ST_Dump(ST_Triangulate2DZ(a.geom))).geom
 			)
 		)geom
-	FROM basepoints a
-	GROUP BY id
+	FROM polygonsz a
 )
 ,assign_triags AS (
 	SELECT 	a.*, b.type, b.class
 	FROM triangles a
 	INNER JOIN polygons b
 	ON ST_Contains(b.geom, a.geom)
-	,bounds c
-	WHERE ST_Intersects(ST_Centroid(b.geom), c.geom)
-	AND a.id = b.id
+	--,bounds c
+	--WHERE ST_Intersects(ST_Centroid(b.geom), c.geom)
+	--AND a.id = b.id
 )
 SELECT _south::text || _west::text || p.id AS id, 
 'water' as type,

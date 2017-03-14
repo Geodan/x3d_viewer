@@ -12,10 +12,10 @@ footprints AS (
 	SELECT ST_Force3D(ST_GeometryN(ST_SimplifyPreserveTopology(wkb_geometry,0.4),1)) geom,
 	a.ogc_fid id,
 	0 bouwjaar
-	FROM bgt_import2.pand_2dactueelbestaand a, bounds b
+	FROM bgt.pand_2dactueelbestaand a, bounds b
 	WHERE 1 = 1
 	--AND a.ogc_fid = 688393 --DEBUG
-	AND ST_Area(a.wkb_geometry) > 30
+	AND ST_Area(a.wkb_geometry) > 5
 	AND ST_Intersects(a.wkb_geometry, b.geom)
 	AND ST_Intersects(ST_Centroid(a.wkb_geometry), b.geom)
 	AND ST_IsValid(a.wkb_geometry)
@@ -56,3 +56,4 @@ SELECT id,
 'building' as type,
 'red' color, ST_AsX3D((p.geom)) geom
 FROM polygons p
+WHERE p.geom Is Not Null --this can happen with not patch

@@ -5,13 +5,13 @@ bounds AS (
 ),
 plantcover AS (
 	SELECT ogc_fid, 'plantcover'::text AS class, bgt_fysiekvoorkomen as type, St_Intersection(wkb_geometry, geom) geom 
-	FROM bgt_import2.begroeidterreindeel_2dactueelbestaand, bounds
-	WHERE eindregistratie Is Null AND ST_Intersects(geom, wkb_geometry) AND ST_GeometryType(wkb_geometry) = 'ST_Polygon'
+	FROM bgt.begroeidterreindeel_2dactueelbestaand, bounds
+	WHERE ST_Intersects(geom, wkb_geometry) AND ST_GeometryType(wkb_geometry) = 'ST_Polygon'
 ),
 bare AS (
 	SELECT ogc_fid, 'bare'::text AS class, bgt_fysiekVoorkomen as type, St_Intersection(wkb_geometry, geom) geom
-	FROM bgt_import2.onbegroeidterreindeel_2dactueelbestaand, bounds
-	WHERE eindregistratie Is Null AND ST_Intersects(geom, wkb_geometry) AND ST_GeometryType(wkb_geometry) = 'ST_Polygon'
+	FROM bgt.onbegroeidterreindeel_2dactueelbestaand, bounds
+	WHERE ST_Intersects(geom, wkb_geometry) AND ST_GeometryType(wkb_geometry) = 'ST_Polygon'
 ),
 pointcloud_ground AS (
 	SELECT PC_FilterEquals(pa,'classification',2) pa 
@@ -30,10 +30,11 @@ polygons AS (
 	FROM polygons a 
 	LEFT JOIN pointcloud_ground b
 	ON ST_Intersects(geom,Geometry(b.pa))
+	WHERE ST_GeometryType(geom) = 'ST_Polygon'
 	GROUP BY id, fid, type, class, geom
 )
 ,basepoints AS (
-	SELECT id,geom FROM polygonsz
+	SELECT id,type, class, geom FROM polygonsz
 	WHERE ST_IsValid(geom)
 )
 ,triangles AS (
@@ -45,7 +46,7 @@ polygons AS (
 			)
 		)geom
 	FROM basepoints a
-	GROUP BY id
+	GROUP BY id, type, class
 )
 ,assign_triags AS (
 	SELECT 	a.*, b.type, b.class

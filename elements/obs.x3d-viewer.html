@@ -1,0 +1,169 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="stylesheet" type="text/css" href="http://x3dom.org/download/dev/x3dom.css" />
+<script src="http://x3dom.org/download/dev/x3dom.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/proj4js/2.2.1/proj4.js"></script>
+<script src="../bower_components/d3/d3.min.js"></script>
+<script src="../src/x3d_mapv2.js"></script> 
+<link rel="import" href="x3d-layer.html">
+
+<dom-module id="x3d-viewer">
+ <style>
+ 	#x3delement {
+	    width: 100%;
+	    display: block;
+	}
+	#debugconsole {
+		display: block;
+	}
+	
+ </style>
+ <template>
+ <div id='debugconsole'>
+ </div>
+ <x3d id="x3delement" width='100%' height='60%'>
+    <Scene class='scene'>
+    	<Environment frustumCulling=true smallFeatureCulling=true smallFeatureThreshold=3 lowPriorityCulling=true lowPriorityThreshold=0.99></Environment>
+    	<Background class="material" 
+    		skyColor="0.1843137254901961 0.3411764705882353 0.47058823529411764"></Background>
+    	<PointLight id='pointlight' 
+    		on='FALSE' 
+    		intensity='0.9000'
+    		ambientIntensity='0.5'
+    		color='0.0 0.6 0.0' 
+    		location='0 10 0.5 '
+    		shadowIntensity='0.5'
+    		shadowFilterSize='10'
+    		shadowOffset='20'
+    		radius='30' >  
+    	</PointLight> 
+    	<DirectionalLight
+    		direction='0.2 0.2 -1' 
+    		intensity=0.2 
+    		shadowIntensity=0 shadowCascades=0 shadowFilterSize=0></DirectionalLight>
+    	<NavigationInfo
+		    id='navInfo'
+		    headlight=[[headlight]]
+		    type='"EXAMINE" "ANY"'
+		    transitionTime='8.0'
+		    speed='0.01'
+		    ></NavigationInfo>
+		 <ViewPoint id='viewpoint'
+           centerOfRotation="0 0 0"
+           position="0 0 100"
+		   zNear=30
+		   orientation="0 0 0 0"
+		   ></ViewPoint>
+		<ViewPoint id='Northwards'
+			zNear=30 
+    		centerOfRotation='0 0 0'
+    		position='0 0 0'
+    		orientation='1 0 0 1.5'
+    		></ViewPoint>
+    	<ViewPoint id='Southwards'
+			zNear=30 
+    		centerOfRotation='0 0 0'
+    		position='0 0 0'
+    		orientation='1 0 0 3'
+    		></ViewPoint>
+    	<ViewPoint id='leiden1' 
+    		zNear=30 
+    		centerOfRotation='93610.0181 463873.2183 25.6168'
+    		position='93610.0181 463873.2183 25.6168'
+    		orientation='-0.3716 0.6002 0.7083 4.1466'
+    		></ViewPoint>
+    	<ViewPoint id='leiden2' 
+    		zNear=30 
+    		centerOfRotation='93975.3693 463909.0736 56.0040'
+    		position='93975.3693 463909.0736 56.0040'
+    		orientation='0.4143 0.4794 0.7736 2.1176'
+    		></ViewPoint>
+    	<ViewPoint id='leiden3' 
+    		zNear=30 
+    		centerOfRotation='93699.7792 463720.8471 30.8476'
+    		position='93699.7792 463720.8471 30.8476'
+    		orientation='0.9812 -0.1418 -0.1309 1.0953'
+    		></ViewPoint>
+		
+		<Shape DEF='light1'>
+			<Appearance>
+			  <Material emissiveColor='yellow' diffuseColor='1 0 0' specularColor='.2 .2 .2' />
+			</Appearance>
+			<Box size='3 3 1' />
+		</Shape>
+    	<content></content>
+    </Scene>
+ </x3d>
+ </template>
+ </dom-module>
+
+<script>
+
+Polymer({
+	is: 'x3d-viewer',
+	properties: {
+		tilesize: {
+			value: 100
+		},
+		map: {
+			type: Object,
+			notify: true
+		},
+		layers: {
+			type: Array
+		},
+		headlight: {
+			type: Boolean,
+			value: false
+		},
+		hour: {
+			type: Boolean,
+			value: 8,
+			observer: '_hourChanged'
+		}
+	},
+	_hourChanged: function(hour){
+		d3.select('DirectionalLight')
+			.transition().duration('2000')
+			.attr('intensity', this.intensity(hour))
+			.attr('direction',this.lightdirection(hour));
+		d3.select('Background')
+			.transition().duration('2000')
+			.attr('skyColor', this.skycolor(hour));
+		
+	},
+	lightdirection: function(time){
+		var scale = d3.scale.linear().domain([0,6,12,18,24])
+			.range([
+				'0.2 0.2 -1',
+				'-1 0 -0.2', 
+				'0.2 0.2 -1',
+				'1 0 -0.2',
+			'0.2 0.2 -1']);
+		return scale(time);
+	},
+	skycolor: function(time){
+		var scale = d3.scale.linear().domain([0,12,24]).range(['black','steelblue','black']);
+		var rgb = d3.rgb(scale(time));
+		return rgb.r/255 + ' ' + rgb.g/255 + ' ' + rgb.b/255;
+	},
+	intensity: function(time){
+		var scale= d3.scale.linear().domain([0,12,24]).range([0.2,1,0.02]);
+		return scale(time);
+	},
+	ready: function(){
+		
+	},
+	attached: function(){
+		this.init();
+	},
+	init: function(){
+		this.map = render(wxs3, this.$.x3delement, {
+			themeconfig: this.themeconfig,
+			tilesize: this.tilesize,
+			loadlist: this.layers,
+			bbox: '93716,463791,93887,463981' //Leiden
+		});
+	}
+
+});
+</script>
