@@ -6,38 +6,16 @@ var app = express( );
 var fs = require( 'fs' ); 
 var pg = require( 'pg' ); 
 var sets = {
-	sensors_pk: { file: 'sensors_pk.sql',sql: ''},
-	geodan_pk: { file: 'geodan_pk.sql',sql: ''},
-	rwspoints: { file: 'rws_points.sql',sql: ''},
-	kade: { file: 'bgt_kade.sql',sql: ''},
-	steiger: { file: 'bgt_steiger.sql',sql: ''},
-	water: { file: 'bgt_water.sql',sql: ''},
-	bridge: { file: 'bgt_bridge.sql',sql: ''},
-	bridgepilons: { file: 'bgt_bridgepilons.sql',sql: ''},
-	scheiding: { file : 'bgt_scheiding.sql',sql: ''},
-	terrain: { file : 'bgt_terrain.sql',sql: ''},
-	roads: { file : 'bgt_road.sql',sql: ''},
-	buildings: { file : 'bgt_buildings.sql', sql : '' },
-	roofskeleton: { file : 'bgt_roofskeleton.sql', sql : '' },
-	treepoints: { file : 'ahn3_treepoints.sql', sql : '' },
-	treepoints_ahn3: { file : 'bgt_ahn3_treepoints.sql', sql : '' },
-	treepoints_ahn2: { file : 'bgt_ahn2_treepoints.sql', sql : '' },
-	groundpoints: { file: 'bgt_groundpoints.sql', sql: '' },
-	lights: { file : 'bgt_lights.sql', sql : '' },
-	adam3dfied_BuildingPart: { file : 'adam3dfied_BuildingPart.sql', sql : '' },
-	adam3dfied_Waterdeel: { file : 'adam3dfied_Waterdeel.sql', sql : '' },
-	adam3dfied_OnbegroeidTerreindeel: { file : 'adam3dfied_OnbegroeidTerreindeel.sql', sql : '' },
-	adam3dfied_TrafficArea: { file : 'adam3dfied_TrafficArea.sql', sql : '' },
-	adam3dfied_PlantCover: { file : 'adam3dfied_PlantCover.sql', sql : '' },
-	adam3dfied_Scheiding: { file : 'adam3dfied_Scheiding.sql', sql : '' },
-	adam3dfied_BridgeConstructionElement: { file : 'adam3dfied_BridgeConstructionElement.sql', sql : '' }
+	buildings: { file: 'citydb_buildings.sql',sql: ''},
+	faces: { file: 'citydb_faces.sql',sql: ''},
+	contours: { file: 'noise_contours.sql',sql: ''}
 }; 
 for( var s in sets ) { 
 	sets [ s ].sql = fs.readFileSync( sets [ s ].file ).toString( ); 
 };
 app.use( cors( )); 
 app.use(compress());  
-app.get( '/bgt3d', function( req, res ) { 
+app.get( '/citydb', function( req, res ) { 
 		var north = req.query [ 'north' ]; 
 		var south = req.query [ 'south' ]; 
 		var west = req.query [ 'west' ]; 
@@ -57,7 +35,7 @@ app.get( '/bgt3d', function( req, res ) {
 		else {
 			var client = new pg.Client( { 
 					user : 'postgres', 
-					database : 'research', 
+					database : '3dcitydb', 
 					host : 'metis', 
 					port : 5432 
 			} ); 
@@ -109,6 +87,6 @@ app.get( '/bgt3d', function( req, res ) {
 app.get( '/', function( req, res ) { 
 		res.send( 'Nothing to see here, move on!' ); 
 } );
-app.listen( 8081, function( ) { 
-		console.log( 'BGT X3D service listening on port 8081' ); 
+app.listen( 8082, function( ) { 
+		console.log( 'CityDB X3D service listening on port 8082' ); 
 } ); 
