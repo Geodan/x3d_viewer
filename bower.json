@@ -26,6 +26,6 @@
     "paper-elements": "^1",
     "iron-elements": "^1",
     "gm-elements": "GeodanElements/gm-elements#master",
-    "x3d-elements": "geodanElements/x3d-elements"
+    "x3d-elements": "GeodanElements/x3d-elements"
   }
 }
