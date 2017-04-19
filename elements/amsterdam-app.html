@@ -33,6 +33,7 @@
     --paper-toolbar-title: {
       font-style: italic;
       font-weight: bold;
+      color: #3f51b5;
     };
     padding: 20px;
  }
@@ -113,7 +114,8 @@
 			<paper-toolbar class="medium-tall white" justify='justified'>
 			 	<span class='title'>
 			 	
-			 		<img src='../images/geodan.png' height='80px'>
+			 		<img src='../images/andreas.svg' height='80px'>
+			 		Amsterdam
 			 		<!--
 			 		<img src='../images/nlesc.png' height='80px'>
 			 		<img src='../images/CWI.png' height='80px'>
@@ -188,7 +190,7 @@ Polymer({
 			value: function(){
 				var bgtservicepath = 'http://localhost:8081/bgt3d';
 				return [
-					,{name: 'treepoints',displayName: 'Trees', active: false, url: bgtservicepath}
+					{name: 'treepoints',displayName: 'Trees', active: false, url: bgtservicepath}
 					,{name: 'lights', 	displayName: 'Lampposts', active: false, url: bgtservicepath}
 					,{name: 'scheiding',displayName: 'Walls', 	active: false, url: bgtservicepath}
 					,{name: 'buildings',displayName: 'Buildings', active: true, url: bgtservicepath} 
