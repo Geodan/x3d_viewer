@@ -1,0 +1,1 @@
+window.bgtservicepath = 'http://localhost:8081/bgt3d';
