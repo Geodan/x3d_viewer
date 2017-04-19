@@ -20,7 +20,7 @@
 <link rel="import" href="../bower_components/gm-elements/gm-geosearch.html">
 
 <link rel="import" href="../bower_components/x3d-elements/x3d-viewer.html">
-
+<script src="../conf/adam_conf.js"></script>
 
 <dom-module id="main-app">
 <style include="iron-flex iron-flex-alignment"></style> 
@@ -188,7 +188,7 @@ Polymer({
 		layers: {
 			type: Array,
 			value: function(){
-				var bgtservicepath = 'http://localhost:8081/bgt3d';
+				//var bgtservicepath = 'http://localhost:8081/bgt3d';
 				return [
 					{name: 'treepoints',displayName: 'Trees', active: false, url: bgtservicepath}
 					,{name: 'lights', 	displayName: 'Lampposts', active: false, url: bgtservicepath}
