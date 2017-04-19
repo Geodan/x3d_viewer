@@ -1,0 +1,409 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+
+<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tab.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
+<link rel="import" href="../bower_components/paper-drawer-panel/paper-drawer-panel.html">
+<link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+
+<link rel="import" href="../bower_components/gm-elements/gm-geosearch.html">
+
+<link rel="import" href="../bower_components/x3d-elements/x3d-viewer.html">
+
+
+<dom-module id="main-app">
+<style include="iron-flex iron-flex-alignment"></style> 
+<style>
+ paper-item {
+ 	 cursor: pointer;
+ }
+ paper-toolbar.white {
+    --paper-toolbar-background: white;
+    --paper-toolbar-title: {
+      font-style: italic;
+      font-weight: bold;
+    };
+    padding: 20px;
+ }
+ .title {
+ 	 margin-top: 10px; 
+ }
+ 
+ </style>
+ <template>
+ 	<paper-drawer-panel id='menu'>
+		<div drawer>
+			<paper-toolbar class="medium-tall">
+			<div class="title">X3D viewer</div>
+			<paper-tabs  class="bottom" selected="{{tabselected}}">
+				<paper-tab>Layers</paper-tab>
+				<paper-tab>Scene</paper-tab>
+			</paper-tabs>
+			</paper-toolbar>
+			
+			<iron-pages selected=[[tabselected]]>
+				<div>
+					<template is='dom-repeat' items=[[layers]] observe="loading" filter="_isnothidden">
+						<paper-item>
+							<paper-checkbox   on-change='layertoggle' checked=[[item.active]]>
+									</paper-checkbox>
+							<paper-item-body>
+								<div class="layout horizontal">
+									<span class='flex'>[[item.displayName]]</span>
+									<paper-spinner active=[[item.loading]]></paper-spinner>
+								</div>
+							</paper-item-body>
+							
+						</paper-item>
+					</template>
+				</div>
+				<div>
+					
+						<paper-listbox selected={{viewselected}} attr-for-selected="name" class="dropdown-content">
+							<paper-item name='viewpoint'>Top view</paper-item>
+							<paper-item name='Northwards'>North</paper-item>
+							<paper-item name='Southwards'>South</paper-item>
+							<paper-item name='leiden1'>View 1</paper-item>
+							<paper-item name='leiden2'>View 2</paper-item>
+							<paper-item name='leiden3'>View 3</paper-item>
+						</paper-listbox>
+					
+					<paper-dropdown-menu label="Time of day">
+						<paper-listbox selected={{hourselected}} attr-for-selected="value" class="dropdown-content">
+							<paper-item value='8'>Morning</paper-item>
+							<paper-item value='12'>Noon</paper-item>
+							<paper-item value='17'>Afternoon</paper-item>
+							<paper-item value='24'>Night</paper-item>
+						</paper-listbox>
+					</paper-dropdown-menu>
+					<paper-dropdown-menu label="Theme">
+						<paper-listbox selected={{themeselected}} attr-for-selected="name" class="dropdown-content">
+							<paper-item name='gray'>Gray</paper-item>
+							<paper-item name='light'>Light</paper-item>
+							<paper-item name='functional'>Functional</paper-item>
+						</paper-listbox>
+					</paper-dropdown-menu>
+
+					<paper-item><paper-toggle-button active checked={{headlight}}>Headlight</paper-toggle-button></paper-item>
+					<gm-geosearch id="geosearch"></gm-geosearch>
+					<paper-dropdown-menu label="Goto">
+						<paper-listbox selected={{locationselected}} attr-for-selected="value" class="dropdown-content">
+							<template is='dom-repeat' items=[[locations]]>
+								<paper-item value=[[item.coords]]>[[item.name]]</paper-item>
+							</template>
+						</paper-listbox>
+					</paper-dropdown-menu>
+				</div>
+			</iron-pages>
+			
+		</div>
+		<div main>
+		<paper-header-panel class="flex">
+			<paper-toolbar class="medium-tall white" justify='justified'>
+			 	<span class='title'>
+			 	
+			 		<img src='../images/geodan.png' height='80px'>
+			 		<!--
+			 		<img src='../images/nlesc.png' height='80px'>
+			 		<img src='../images/CWI.png' height='80px'>
+			 		<img src='../images/commit.png' height='80px'>
+			 		-->
+			 	</span>
+			</paper-toolbar>
+			<x3d-viewer 
+				 map={{map}} 
+				 headlight=[[headlight]]
+				 hour=[[hourselected]]
+				 themeconfig=[[themeconfig]]>
+				<template is='dom-repeat' items=[[layers]]>
+					<transform id=[[item.name]]></transform>
+					
+					<x3d-layer 
+						active=[[item.active]] 
+						map=[[map]]
+						on-loading='_loading'
+						on-loaded='_loaded'
+						url=[[item.url]] 
+						name=[[item.name]]
+						themeconfig=[[themeconfig]]
+						config=[[item.config]]
+						></x3d-layer>
+						
+				</template>
+			</x3d-viewer>
+		</paper-header-panel>
+		</div>
+	</paper-drawer-panel>
+ 	
+ </template>
+ </dom-module>
+
+<script>
+
+Polymer({
+	is: 'main-app',
+	properties: {
+		tabselected: {
+			type: Number,
+			value: 0
+		},
+        viewselected: {
+        	type: Number,
+        	value: 'viewpoint',
+        	observer: '_selectedviewchanged'
+        },
+        locationselected: {
+        	type: String,
+        	observer: '_selectedlocationchanged'
+        },
+		selectedLayers: {
+			type: Array
+			//observer: '_selectedLayersChanged'
+		},
+		headlight: {
+			type: Boolean,
+			value: false
+		},
+		hourselected: {
+			type: Number,
+			value: 8
+		},
+		map: {
+			type: Object,
+			observer: '_mapChanged'
+		},
+		layers: {
+			type: Array,
+			value: function(){
+				var bgtservicepath = 'http://localhost:8081/bgt3d';
+				return [
+					,{name: 'treepoints',displayName: 'Trees', active: false, url: bgtservicepath}
+					,{name: 'lights', 	displayName: 'Lampposts', active: false, url: bgtservicepath}
+					,{name: 'scheiding',displayName: 'Walls', 	active: false, url: bgtservicepath}
+					,{name: 'buildings',displayName: 'Buildings', active: true, url: bgtservicepath} 
+					,{name: 'bridge',	displayName: 'Bridges', active: false, url: bgtservicepath}
+					,{name: 'bridgepilons',	displayName: 'Bridgepilons', active: false, url: bgtservicepath}
+					,{name: 'kade', 	displayName: 'Bank', 	active: false, url: bgtservicepath}
+					,{name: 'steiger', 	displayName: 'Jetty', 	active: false, url: bgtservicepath}
+					,{name: 'terrain', 	displayName: 'Terrain', active: false, url: bgtservicepath}
+					,{name: 'roads', 	displayName: 'Roads', 	active: false, url: bgtservicepath}
+					,{name: 'water', 	displayName: 'Water', 	active: false, url: bgtservicepath}
+				];
+			}
+			
+		},
+		locations: {
+			type: Array,
+			value: function(){
+				return [
+				{coords: [122689, 483927],bbox: ''  ,name: 'Geodan PK'},
+				{coords: [122110, 486549],bbox: '122110, 486549, 122498, 486790'  ,name: 'Hortus Amsterdam'},
+				{coords: [119966, 485839],bbox: '119966, 485839, 120455, 486143'  ,name: 'Vondelpark tunnel'},
+				{coords: [122640, 487020],bbox: '122640, 487020, 122888, 487174'  ,name: 'Nemo'},
+				{coords: [121980, 486706],bbox: '121980, 486706, 122228, 486860'  ,name: 'Mr visserplein'}
+
+				] 
+			}
+		},
+		themeconfig: {
+			type: Object,
+			value: function(){
+				return {
+					gray: {
+					 materials: {
+					 	tree: { emissiveColor: 'darkolivegreen'},
+					 	geodan_pk: {diffuseColor: 'white',transparency: '0.3'},
+						building: {diffuseColor: 'salmon',transparency: '0'},
+						water: {specularColor: 'ivory', diffuseColor: 'powderblue', shininess: '1'},
+						voetpad: {diffuseColor: 'gray'},
+						rijbaan_lokale_weg: {diffuseColor: 'gray'},
+						open_verharding:{diffuseColor: 'gray'},
+						erf:{diffuseColor: 'khaki'},
+						groenvoorziening:{diffuseColor: 'yellowgreen'},
+						'gemengd bos':{diffuseColor: 'forestgreen'},
+						struiken: {diffuseColor: 'darkgreen'},
+						dek:{diffuseColor: 'gray'},
+						pijler: {diffuseColor: 'gray'},
+						light: {emissiveColor: 'yellow', transparency: 0},
+						post: {diffuseColor: 'gray'},
+						roof: {diffuseColor: 'orange'},
+						pand: {diffuseColor: 'orange'},
+						scene: {skyColor: '0.4 0.6 0.8'},
+						zand: {diffuseColor: 'yellow'},
+						facade: {transparency: 0},
+						contour: {transparency: 0}
+					 }
+					},
+					light: {
+					  materials: {
+						building: {diffuseColor: 'white'},
+						water: {specularColor: '0.823529 0.705882 0.54902', diffuseColor: '0.9 1 1', shininess: '1'},
+						light: {emissiveColor: 'black', transparency: 1},
+						scene: {skyColor: '0.4 0.6 0.8'},
+						erf:{diffuseColor: 'white'},
+					  }
+					},
+					functional: {
+						materials: {
+							fietspad:{diffuseColor: 'brown'},
+							inrit: {diffuseColor: 'gray'},
+							'OV-baan':{diffuseColor: 'gray'},
+							overweg:{diffuseColor: 'gray'},
+							parkeervlak:{diffuseColor: 'gray'},
+							'rijbaan autosnelweg': {diffuseColor: 'gray'},
+							'rijbaan autoweg': {diffuseColor: 'gray'},
+							'rijbaan lokale weg':{diffuseColor: 'gray'},
+							'rijbaan regionale weg':{diffuseColor: 'gray'},
+							spoorbaan:{diffuseColor: 'darkGray'},
+							transitie:{diffuseColor: 'purple'},
+							voetgangersgebied:{diffuseColor: 'white'},
+							voetpad:{diffuseColor: 'white'},
+							'voetpad op trap':{diffuseColor: 'white'},
+							woonerf:{diffuseColor: 'gray'},
+						}
+					}
+				}
+			}
+		}
+	},
+	observers: [
+	],
+	_loading: function(a,b){
+		var item = a.model.item;
+		var idx = this.layers.indexOf(a.model.item);
+		this.set('layers.'+idx+'.loading',true);
+	},
+	_loaded: function(a,b){
+		var item = a.model.item;
+		var idx = this.layers.indexOf(a.model.item);
+		this.set('layers.'+idx+'.loading',false);
+	},
+
+	_isActive: function(item){
+		return item.active;
+	},
+	_isnothidden: function(item){
+		return !item.hidden;
+	},
+	_selectedviewchanged: function(view){
+		 document.getElementById(view).setAttribute('set_bind','true');         
+	},
+	_selectedlocationchanged: function(coords){
+		this._flyTo(coords);
+	},
+	layertoggle: function(e,d){
+		var self = this;
+		var status = e.target.checked;
+		var layername = e.model.item.name;
+		var layer = this.layers.forEach(function(l,i){
+				if (l.name == layername){
+					//var status = l.active?false:true; 
+					self.set('layers.'+i+'.active',status);
+					//l.active = status;
+				}
+		});
+	},
+	_mapChanged: function(map){
+		this._flyTo([119966, 485839],500); 
+	},
+	viewFunc: function(evt){
+	
+		// show viewpoint values
+		if (evt)
+		{
+			var pos = evt.position;
+			var rot = evt.orientation;
+			var mat = evt.matrix;
+		
+			var camPos = pos.x.toFixed(4)+' '+pos.y.toFixed(4)+' '+pos.z.toFixed(4);
+			var camRot = rot[0].x.toFixed(4)+' '+rot[0].y.toFixed(4)+' '+rot[0].z.toFixed(4)+' '+rot[1].toFixed(4);
+			//console.log(camRot);
+			//document.getElementById("viewMat").innerHTML = "&ltViewpoint position='" + 
+															camPos + "' orientation='" + camRot + "'&gt";
+		}
+		
+		// update 2d marker also if camera changes since projection is now wrong
+		/*
+		var trans = x3d.fields.SFVec3f.parse(document.getElementById('bar').getAttribute("translation"));
+		var pos2d = runtime.calcPagePos(trans.x, trans.y, trans.z);
+		var anno = document.getElementById("anno2d");
+		
+		anno.innerHTML = "(" + pos2d[0] + ", " + pos2d[1] + ")";
+		anno.style.left = (pos2d[0]+1) + "px";
+		anno.style.top = (pos2d[1]+1) + "px";
+		*/
+	},
+	_flyTo: function(coords,r){
+		var radius = r || 100;
+		var x = coords[0];
+		var y = coords[1];
+		var bbox = {
+			west: x -radius,
+			east: x +radius,
+			south: y -radius,
+			north: y +radius
+		}
+		var map = self.map;
+		map.dim.minx = parseInt(bbox.west);
+		map.dim.maxx = parseInt(bbox.east);
+		map.dim.miny = parseInt(bbox.south);
+		map.dim.maxy = parseInt(bbox.north);
+		
+		var tiles = map.bbox2tiles(map.dim.getBounds());
+		document.querySelectorAll('x3d-layer').forEach(function(d){
+			d.removeTiles();//TODO make nicer
+			d.tiles = tiles;
+		});
+		
+		map.scene.select("#viewpoint")
+			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
+			.attr( "position", coords[0] + " " + coords[1] + " 550")
+			.attr('set_bind',true);
+		map.scene.select("#Northwards")
+			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
+			.attr( "position", coords[0] + " " + (coords[1] -300) + " 20");
+		map.scene.select("#Southwards")
+			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
+			.attr( "position", coords[0] + " " + (coords[1] +300) + " 20");
+		
+		map.scene.select("#front")
+			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
+			.attr( "position", coords[0] + " " + (coords[1]) + " 20");
+		map.scene.select("#right")
+			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
+			.attr( "position", coords[0] + " " + (coords[1]) + " 20");
+		map.scene.select("#left")
+			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
+			.attr( "position", coords[0] + " " + (coords[1]) + " 20");
+		map.scene.select("#top")
+			.attr( "centerOfRotation", coords[0] + " " + coords[1] + " 0" )
+			.attr( "position", coords[0] + " " + (coords[1]) + " 20");
+			
+		document.getElementById('viewpoint').addEventListener('viewpointChanged', this.viewFunc, false);
+		
+		map.scene.select('#pointlight')
+			.attr('location',coords[0] + " " + coords[1] + " 25");
+		
+	},
+	
+	ready: function(){
+		var self = this;
+		this.addEventListener('goto-rdcoords',function(d){
+      		var coords = d.detail;
+            self._flyTo(coords);
+      	  });
+      	
+	}
+});
+</script>
