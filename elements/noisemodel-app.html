@@ -49,7 +49,6 @@
 			<paper-tabs  class="bottom" selected="{{tabselected}}">
 				<paper-tab>Layers</paper-tab>
 				<paper-tab>Scene</paper-tab>
-				<paper-tab>Demos</paper-tab>
 			</paper-tabs>
 			</paper-toolbar>
 			
@@ -106,16 +105,6 @@
 						</paper-listbox>
 					</paper-dropdown-menu>
 				</div>
-				<div>
-					<paper-item on-click='loopDemo'>Loop</paper-item>
-					<paper-item on-click='treeDemo'>Tree growth</paper-item>
-					<!-- Vershil in grootte van bomen -->
-					<paper-item on-click='lightDemo'>Moving light</paper-item>
-					<paper-item>Cluster trees</paper-item>
-					<!-- Individuele bomen vinden obv. cluster -->
-					<paper-item>Change detection</paper-item>
-					<!-- Zichtbaar maken verschil in parkeer richting/dakopbouw in Scheveningen-->
-				</div>
 			</iron-pages>
 			
 		</div>
@@ -123,13 +112,7 @@
 		<paper-header-panel class="flex">
 			<paper-toolbar class="medium-tall white" justify='justified'>
 			 	<span class='title'>
-			 	
 			 		<img src='../images/geodan.png' height='80px'>
-			 		<!--
-			 		<img src='../images/nlesc.png' height='80px'>
-			 		<img src='../images/CWI.png' height='80px'>
-			 		<img src='../images/commit.png' height='80px'>
-			 		-->
 			 	</span>
 			</paper-toolbar>
 			<x3d-viewer 
@@ -197,26 +180,20 @@ Polymer({
 		layers: {
 			type: Array,
 			value: function(){
-				//var servicepath = 'http://research.geodan.nl/service/citydb';
-				var servicepath = 'http://localhost:8082/citydb';
-				var bgtservicepath = 'http://localhost:8081/bgt3d';
+				var servicepath = 'http://localhost:8081/noisemodel3d';
+				var bgtpath = 'http://localhost:8081/noisemodel3d';
 				return [
-					{name: 'contours', 	displayName: 'Contours', active: true, hidden: false,url: servicepath},
-					{name: 'breaklines', 	displayName: 'Breaklines', active: true, hidden: false,url: bgtservicepath},
-					{name: 'buildings', 	displayName: 'Buildings', active: true, hidden: false,url: servicepath},
-					{name: 'faces', 	displayName: 'Facades', active: false, hidden: false,url: servicepath}
-					,{name: 'treepoints',		displayName: 'Trees', active: false, url: bgtservicepath}
-					,{name: 'lights', 	displayName: 'Lampposts', active: false, url: bgtservicepath}
-					,{name: 'scheiding',displayName: 'Walls', 	active: false, url: bgtservicepath}
-					//,{name: 'buildings',displayName: 'Buildings', active: true, url: bgtservicepath} 
-					,{name: 'bridge',	displayName: 'Bridges', active: false, url: bgtservicepath}
-					,{name: 'bridgepilons',	displayName: 'Bridgepilons', active: false, url: bgtservicepath}
-					,{name: 'kade', 	displayName: 'Bank', 	active: false, url: bgtservicepath}
-					,{name: 'steiger', 	displayName: 'Jetty', 	active: false, url: bgtservicepath}
-					,{name: 'terrain', 	displayName: 'Terrain', active: false, url: bgtservicepath}
-					,{name: 'roads', 	displayName: 'Roads', 	active: false, url: bgtservicepath}
-					,{name: 'water', 	displayName: 'Water', 	active: false, url: bgtservicepath}
+					{name: 'roofplanes',displayName: 'Buildings', active: true, hidden: false,url: servicepath},
+					{name: 'buildings',displayName: 'LOD1', active: false, hidden: false,url: servicepath},
+					{name: 'buildup',displayName: 'Buildup', active: true, hidden: false,url: servicepath},
+					{name: 'water', 	displayName: 'Water', active: true, hidden: false,url: servicepath},
+					{name: 'terrain', 	displayName: 'Terrein', active: false, hidden: false,url: servicepath},
+					{name: 'roads', 	displayName: 'Wegen', active: false, hidden: false,url: servicepath},
+					{name: 'treepoints',displayName: 'Bomen (punten)', active: false, hidden: false,url: servicepath},
+					{name: 'buildingpoints',displayName: 'Panden (punten)', active: false, hidden: false,url: servicepath},
+					{name: 'kade', 		displayName: 'Kade', active: false, hidden: false,url: servicepath},
 					
+				
 				];
 			}
 			
@@ -225,8 +202,8 @@ Polymer({
 			type: Array,
 			value: function(){
 				return [
-				{coords: [78468,458034],bbox: ''  ,name: 'Scheveningen'}
-
+				//{coords: [120490.34,488995.36],bbox: ''  ,name: 'Polanenbuurt'}
+				{coords: [124048.38,487915.59],bbox: ''  ,name: 'Java eiland'}
 				] 
 			}
 		},
@@ -236,8 +213,9 @@ Polymer({
 				return {
 					gray: {
 					 materials: {
+						 
 					 	tree: { emissiveColor: 'darkolivegreen'},
-					 	geodan_pk: {diffuseColor: 'white',transparency: '0.3'},
+					 	breakline: {diffuseColor: 'white',transparency: '0'},
 						building: {diffuseColor: 'salmon',transparency: '0'},
 						water: {specularColor: 'ivory', diffuseColor: 'powderblue', shininess: '1'},
 						voetpad: {diffuseColor: 'gray'},
@@ -329,8 +307,10 @@ Polymer({
 		});
 	},
 	_mapChanged: function(map){
-		this._flyTo([120324,488938],500); //Amsterdam
-		//this._flyTo([77400,450100],500); //DEN HAAG 
+		//this._flyTo([122460.9,489418.8],100); //Polanenbuurt
+		//this._flyTo([124048.38,487915.59],100); //Java eiland
+		this._flyTo([122480.60,489444.97],200); //Distelbuurt
+		//this._flyTo([123181.9,488909.6],200); //Distelbuurt
 	},
 	viewFunc: function(evt){
 	
