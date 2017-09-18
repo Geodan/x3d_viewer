@@ -183,7 +183,7 @@ Polymer({
 				var servicepath = 'http://localhost:8081/noisemodel3d';
 				var bgtpath = 'http://localhost:8081/noisemodel3d';
 				return [
-					{name: 'roofplanes',displayName: 'Buildings', active: true, hidden: false,url: servicepath},
+					{name: 'roofplanes',displayName: 'Buildings', active: false, hidden: false,url: servicepath},
 					{name: 'roofoutline',displayName: 'Outline', active: true, hidden: false,url: servicepath},
 					{name: 'buildings',displayName: 'LOD1', active: false, hidden: false,url: servicepath},
 					{name: 'buildup',displayName: 'Buildup', active: true, hidden: false,url: servicepath},
@@ -312,6 +312,7 @@ Polymer({
 		//this._flyTo([124048.38,487915.59],100); //Java eiland
 		this._flyTo([122480.60,489444.97],200); //Distelbuurt
 		//this._flyTo([123181.9,488909.6],200); //Distelbuurt
+		//this._flyTo([190696.1,427393.7],200); //Ubbergen
 	},
 	viewFunc: function(evt){
 	
