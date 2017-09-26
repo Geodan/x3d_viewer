@@ -17,10 +17,8 @@
 <link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
 
-<link rel="import" href="../bower_components/gm-elements/gm-geosearch.html">
-
 <link rel="import" href="../bower_components/x3d-elements/x3d-viewer.html">
-
+<link rel="import" href="../bower_components/x3d-elements/x3d-layer.html">
 
 <dom-module id="main-app">
 <style include="iron-flex iron-flex-alignment"></style> 
@@ -38,6 +36,10 @@
  }
  .title {
  	 margin-top: 10px; 
+ }
+ x3d-viewer {
+	 width: 600px;
+	 height: 600px;
  }
  
  </style>
@@ -115,7 +117,7 @@
 			 		<img src='../images/geodan.png' height='80px'>
 			 	</span>
 			</paper-toolbar>
-			<x3d-viewer 
+			<x3d-viewer class='flex'
 				 map={{map}} 
 				 headlight=[[headlight]]
 				 hour=[[hourselected]]
