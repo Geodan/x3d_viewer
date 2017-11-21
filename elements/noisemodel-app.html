@@ -186,11 +186,12 @@ Polymer({
 				var bgtpath = 'http://localhost:8081/noisemodel3d';
 				return [
 					{name: 'roofplanes',displayName: 'Buildings', active: false, hidden: false,url: servicepath},
-					{name: 'roofoutline',displayName: 'Outline', active: true, hidden: false,url: servicepath},
+					{name: 'roofoutline',displayName: 'Outline', active: false, hidden: false,url: servicepath},
 					{name: 'buildingslod1plus',displayName: 'LOD1Plus', active: false, hidden: false,url: servicepath},
 					{name: 'buildings',displayName: 'LOD1', active: false, hidden: false,url: servicepath},
-					{name: 'buildup',displayName: 'Buildup', active: true, hidden: false,url: servicepath},
-					{name: 'water', 	displayName: 'Water', active: true, hidden: false,url: servicepath},
+					{name: 'buildup',displayName: 'Buildup', active: false, hidden: false,url: servicepath},
+					{name: 'breaklines', 		displayName: 'Breeklijnen', active: true, hidden: false,url: servicepath},
+					{name: 'water', 	displayName: 'Water', active: false, hidden: false,url: servicepath},
 					{name: 'terrain', 	displayName: 'Terrein', active: false, hidden: false,url: servicepath},
 					{name: 'roads', 	displayName: 'Wegen', active: false, hidden: false,url: servicepath},
 					{name: 'treepoints',displayName: 'Bomen (punten)', active: false, hidden: false,url: servicepath},
@@ -313,9 +314,10 @@ Polymer({
 	_mapChanged: function(map){
 		//this._flyTo([122460.9,489418.8],100); //Polanenbuurt
 		//this._flyTo([124048.38,487915.59],100); //Java eiland
-		this._flyTo([122480.60,489444.97],200); //Distelbuurt
+		//this._flyTo([122480.60,489444.97],200); //Distelbuurt
 		//this._flyTo([123181.9,488909.6],200); //Distelbuurt
 		//this._flyTo([190696.1,427393.7],200); //Ubbergen
+		this._flyTo([94256,465609],200); //Leiden Merenwijk
 	},
 	viewFunc: function(evt){
 	
