@@ -197,8 +197,8 @@ Polymer({
 		layers: {
 			type: Array,
 			value: function(){
-				var servicepath = 'http://research.geodan.nl/service/bgt3d';
-				//var servicepath = 'http://localhost:8081/bgt3d';
+				//var servicepath = 'http://research.geodan.nl/service/bgt3d';
+				var servicepath = 'http://localhost:8081/bgt3d';
 				return [
 					/*POINTS*/
 					//,{name: 'groundpoints',	reload: true, url: servicepath}
@@ -210,15 +210,16 @@ Polymer({
 
 					/*VECTOR*/
 					,{name: 'lights', 	displayName: 'Lampposts', active: false, url: servicepath}
-					,{name: 'scheiding',displayName: 'Walls', 	active: true, url: servicepath}
-					,{name: 'buildings',displayName: 'Buildings', active: true, url: servicepath} 
+					,{name: 'scheiding',displayName: 'Walls', 	active: false, url: servicepath}
+					,{name: 'buildings',displayName: 'Buildings', active: false, url: servicepath} 
 					,{name: 'bridge',	displayName: 'Bridges', active: false, url: servicepath}
 					,{name: 'bridgepilons',	displayName: 'Bridgepilons', active: false, url: servicepath}
 					,{name: 'kade', 	displayName: 'Bank', 	active: false, url: servicepath}
 					,{name: 'steiger', 	displayName: 'Jetty', 	active: false, url: servicepath}
-					,{name: 'terrain', 	displayName: 'Terrain', active: true, url: servicepath}
-					,{name: 'roads', 	displayName: 'Roads', 	active: true, url: servicepath}
+					,{name: 'terrain', 	displayName: 'Terrain', active: false, url: servicepath}
+					,{name: 'roads', 	displayName: 'Roads', 	active: false, url: servicepath}
 					,{name: 'water', 	displayName: 'Water', 	active: true, url: servicepath}
+					,{name: 'breaklines', displayName: 'Breaklines', 	active: true, url: servicepath}
 					//,{name: 'adam3dfied',   displayName: 'Adam 3dfied', active: true, url: servicepath}
 
 				];
@@ -346,7 +347,8 @@ Polymer({
 		});
 	},
 	_mapChanged: function(map){
-		this._flyTo([93616, 463691]); //default leiden
+		//this._flyTo([93616, 463691]); //default leiden
+		this._flyTo([120596,488761],400); //amsterdam noise
 		//this._flyTo([112500, 490554]); //amsterdam
 	},
 	viewFunc: function(evt){
